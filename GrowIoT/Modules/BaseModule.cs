@@ -75,14 +75,16 @@ namespace GrowIoT.Modules
 
                 if (relayPin > 0)
                 {
-                    if (Controller.GetPinMode(relayPin) == PinMode.Output)
-                        Controller.SetPinMode(relayPin, PinMode.Input);
+                    // old logic
 
-                    var curValue = Controller.Read(relayPin);
-                    if (curValue == value)
-                        return;
+                    // Controller.SetPinMode(relayPin, PinMode.Input);
+                    // var curValue = Controller.Read(relayPin);
+                    // Debug.WriteLine($"--- Pin {relayPin}: value is {curValue.ToString()}");
+                    // if (curValue == value)
+                    //     return;
+                    //Debug.WriteLine($"--- Pin {relayPin}: set to {value.ToString()}");
 
-                    Debug.WriteLine($"--- Pin {relayPin}: set to {value.ToString()}");
+                    Controller.SetPinMode(relayPin, PinMode.Output);
                     Controller.Write(relayPin, value);
                 }
             }

@@ -84,8 +84,8 @@ namespace GrowIoT.Services
             var twoRelayName = "Light&Fan Relay";
 
             var dhtPin = 4;
-            var fanPin = 27;
-            var lightPin = 17;
+            var fanPin = 17;
+            var lightPin = 27;
 
             return new ConfigModel
             {
@@ -106,29 +106,29 @@ namespace GrowIoT.Services
                             {
                                 ModuleName = lightName,
                                 Type = JobType.On,
-                                CronExpression = "0/1 0/1 7-19 ? * *"
+                                CronExpression = "0/1 0/1 7-20 ? * *"
                             },
                             new ModuleRule
                             {
                                 ModuleName = lightName,
                                 Type = JobType.Off,
-                                CronExpression = "0/1 0/1 20-6 ? * *"
+                                CronExpression = "0/1 0/1 21-6 ? * *"
                             },
-                            //new ModuleRule
-                            //{
-                            //    ModuleName = fanName,
-                            //    Type = JobType.On,
-                            //    CronExpression = "0/1 0-20 * ? * *"
-                            //},
-                            //new ModuleRule
-                            //{
-                            //    ModuleName = fanName,
-                            //    Type = JobType.Off,
-                            //    CronExpression = "0/1 21-59 * ? * *"
-                            //}
+                            new ModuleRule
+                            {
+                               ModuleName = fanName,
+                               Type = JobType.On,
+                               CronExpression = "0/1 0-20 * ? * *"
+                            },
+                            new ModuleRule
+                            {
+                               ModuleName = fanName,
+                               Type = JobType.Off,
+                               CronExpression = "0/1 21-59 * ? * *"
+                            }
                         })
                         .AddSubModule(new LightModule(lightName),lightPin)
-                        //.AddSubModule(new FanModule(fanName),17)
+                        .AddSubModule(new FanModule(fanName),fanPin)
                 }
             };
         }
