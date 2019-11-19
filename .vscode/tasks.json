@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",            
+            "windows": {
+                "command": "dotnet publish -r linux-arm -o bin/linux-arm/publish ${workspaceFolder}\\GrowIoT\\GrowIoT.csproj",
+                "type": "shell",
+            }
+        },
+        {
+            "label": "publish",            
+            "windows": {
+                "command": "bash -c 'rsync -rvuzp ${command:extension.vscode-wsl-workspaceFolder}/bin/linux-arm/publish/ pi@192.168.0.101:~/${workspaceFolderBasename}'",
+                "type": "shell",
+            }
+        }
+    ]
+}
