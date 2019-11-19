@@ -13,18 +13,19 @@ using GrowIoT.Modules.Light;
 using GrowIoT.Modules.Relays;
 using GrowIoT.Modules.Sensors;
 using Newtonsoft.Json;
-using Microsoft.AspNetCore.Hosting;
 
 namespace GrowIoT.Services
 {
     public class ConfigService
     {
         private ConfigModel _currentConfig;
-        private readonly IHostingEnvironment _hostingEnvironment;
 
-        public async Task<ConfigModel> GetConfig(GpioController controller)
+        public async Task<ConfigModel> GetConfig()
         {
+            return GetDefaultConfig();
+            /*
             ConfigModel config = null;
+            
             try
             {
                 string storageFolderPath = Directory.GetCurrentDirectory();
@@ -55,13 +56,20 @@ namespace GrowIoT.Services
                 config = GetDefaultConfig();
             }
 
-            return _currentConfig = config;
+            return _currentConfig = config;*/
         }
 
-        public void InitConfig(GpioController controller)
+        public void InitConfig(GpioController controller, ConfigModel config = null)
         {
-            var config = _currentConfig ?? GetDefaultConfig();
-            foreach (var module in config.Modules)
+            if (config != null)
+            {
+                _currentConfig = config;
+            }
+
+            if (_currentConfig == null)
+                return;
+
+            foreach (var module in _currentConfig.Modules)
             {
                 module.Init(controller);
             }
@@ -69,25 +77,30 @@ namespace GrowIoT.Services
 
         public ConfigModel GetDefaultConfig()
         {
+            Console.WriteLine("--- Using default config ---");
             var lightName = "Box Light";
             var fanName = "Fan";
             var dhtName = "Dht Sensor";
             var twoRelayName = "Light&Fan Relay";
+
+            var dhtPin = 4;
+            var fanPin = 27;
+            var lightPin = 17;
 
             return new ConfigModel
             {
                 ListeningPort = 8001,
                 Modules = new List<BaseModule>
                 {
-                    new DhtSensor(dhtName,4,new List<ModuleRule>
+                    new DhtSensor(dhtName,dhtPin,new List<ModuleRule>
                     {
                         new ModuleRule
                         {
                             Type = JobType.Read,
-                            CronExpression = "0/5 0/1 * 1/1 * ? *"
+                            CronExpression = "0/10 0/1 * 1/1 * ? *"
                         }
                     }),
-                    new TwoRelayModule(twoRelayName,17,27,new List<ModuleRule>()
+                    new TwoRelayModule(twoRelayName,lightPin,fanPin,new List<ModuleRule>()
                         {
                             new ModuleRule
                             {
@@ -114,7 +127,7 @@ namespace GrowIoT.Services
                             //    CronExpression = "0/1 21-59 * ? * *"
                             //}
                         })
-                        //.AddSubModule(new LightModule(lightName),27)
+                        .AddSubModule(new LightModule(lightName),lightPin)
                         //.AddSubModule(new FanModule(fanName),17)
                 }
             };

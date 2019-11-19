@@ -12,33 +12,23 @@ namespace GrowIoT.Modules.Sensors
 {
     public class DhtSensor : BaseModule, ISensor<ModuleResponse<DthData>>
     {
-        private readonly int _gpioPin;
-
-        //public delegate void DhtData(ModuleResponse<DthData> data);
-        //public event DhtData DataReceived;
-
         public DhtSensor(string name, int gpioPin, List<ModuleRule> rules = null) : base(rules, name)
         {
-            _gpioPin = gpioPin;
             Pins = new List<int>(){
-                _gpioPin
+                gpioPin
             };
             Type = ModuleType.HumidityAndTemperature;
         }
 
         public override void Init(GpioController controller)
         {
+            if (!Pins.Any())
+                return;
+
             base.Init(controller);
 
-            Controller.OpenPin(_gpioPin);
-            Controller.SetPinMode(_gpioPin, PinMode.Output);
-
-            Pins = new List<int>()
-            {
-                _gpioPin
-            };
-
-
+            Controller.OpenPin(Pins.FirstOrDefault());
+            Controller.SetPinMode(Pins.FirstOrDefault(), PinMode.Output);
         }
 
         public async Task<ModuleResponse<DthData>> GetData()
@@ -47,9 +37,6 @@ namespace GrowIoT.Modules.Sensors
             try
             {
                 var dht11 = new Dht11(Pins.FirstOrDefault(), PinNumberingScheme.Logical);
-
-                if (!dht11.IsLastReadSuccessful)
-                    return result;
 
                 result.Data = new DthData
                 {

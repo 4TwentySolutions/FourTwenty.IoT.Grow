@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Device.Gpio;
+using System.Threading;
 using System.Threading.Tasks;
 using GrowIoT.Enums;
 using GrowIoT.Jobs;
 using GrowIoT.Modules;
 using GrowIoT.Services;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
 using Quartz;
 using Quartz.Impl;
 
@@ -19,42 +18,31 @@ namespace GrowIoT
         private static IList<BaseModule> _modules;
         private static NetworkService _networkService;
         private static IScheduler _scheduler;
+        private static CancellationTokenSource _tokenSource;
 
         public static async Task Main(string[] args)
         {
             _scheduler = await StdSchedulerFactory.GetDefaultScheduler();
             Console.WriteLine($"--- Scheduler:{ _scheduler != null } ---");
             _configService = new ConfigService();
+
             using (GpioController controller = new GpioController(PinNumberingScheme.Logical))
             {
                 Console.WriteLine("--- Start init ---");
-                var config = await _configService.GetConfig(controller);
+                var config = await _configService.GetConfig();
                 _modules = config.Modules;
-                _configService.InitConfig(controller);
+                _configService.InitConfig(controller, config);
                 _networkService = new NetworkService(config.ListeningPort);
                 Console.WriteLine("--- End init ---");
-                await StartJobs();
+                await StartJobs();               
 
-                bool isCancel = false;
-
-
-                while (!isCancel)
-                {
-                    Console.CancelKeyPress += (object sender, ConsoleCancelEventArgs eventArgs) =>
-                    {
-                        isCancel = true;
-                        controller.Dispose();
-                        Console.WriteLine("Pin cleanup complete!");
-                    };
-                }
+                Console.ReadLine();
             }
-
-
-            //BuildWebHost(args).Run();
         }
 
         public static async Task StartJobs()
         {
+            Console.WriteLine("--- Jobs starting ---");
             await _scheduler.Start();
 
             if (_modules != null)
@@ -86,7 +74,7 @@ namespace GrowIoT
                             }
 
                             var job = JobBuilder.Create(jobType).Build();
-                            ITrigger trigger = TriggerBuilder.Create()
+                            var trigger = TriggerBuilder.Create()
 
                                 .WithIdentity($"{sensor.Name}_{moduleRule.Type}_Job_{index}", moduleRule.Type.ToString())
 
@@ -105,14 +93,7 @@ namespace GrowIoT
                         }
                     }
                 }
-
             }
         }
-
-        public static IWebHost BuildWebHost(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
-                .UseUrls("http://*:5001")
-                .UseStartup<Startup>()
-                .Build();
     }
 }
