@@ -12,22 +12,15 @@ namespace GrowIoT.Modules.Sensors
 {
     public class DhtSensor : BaseModule, ISensor<ModuleResponse<DthData>>
     {
-        public DhtSensor(string name, int gpioPin, List<ModuleRule> rules = null) : base(rules, name)
+        public DhtSensor(string name, int gpioPin, List<ModuleRule> rules = null) : base(gpioPin, rules, name)
         {
-            Pins = new List<int>(){
-                gpioPin
-            };
             Type = ModuleType.HumidityAndTemperature;
         }
 
         public override void Init(GpioController controller)
         {
-            if (!Pins.Any())
-                return;
-
             base.Init(controller);
 
-            Controller.OpenPin(Pins.FirstOrDefault());
             Controller.SetPinMode(Pins.FirstOrDefault(), PinMode.Output);
         }
 

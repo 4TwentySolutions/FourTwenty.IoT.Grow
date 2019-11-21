@@ -7,6 +7,7 @@ using System.Text;
 using GrowIoT.Models.Enums;
 using GrowIoT.Models.Shared;
 using Newtonsoft.Json;
+using GrowIoT.Extensions;
 
 namespace GrowIoT.Services
 {
@@ -23,23 +24,13 @@ namespace GrowIoT.Services
 
         }
 
-        //public void StartNetwork()
-        //{
-        //    StartTcp(GetIpAddress(), _port);
-        //}
+        public void StartNetwork()
+        {
+            var ip = IpExtensions.GetCurrentIp().Replace(" ","");
+            if (ip != null)
+                StartTcp(IPAddress.Parse(ip), _port);
+        }
 
-        //public IPAddress GetIpAddress(IHttpContextAccessor accessor)
-        //{
-        //    var ipAddress = new List<string>();
-        //    var hosts = Windows.Networking.Connectivity.NetworkInformation.GetHostNames().ToList();
-        //    foreach (var host in hosts)
-        //    {
-        //        var ip = host.DisplayName;
-        //        ipAddress.Add(ip);
-        //    }
-        //    var address = IPAddress.Parse(ipAddress.Last());
-        //    return address;
-        //}
 
         private void StartTcp(IPAddress ipAddress, int port)
         {
@@ -53,7 +44,7 @@ namespace GrowIoT.Services
 
                 while (true)
                 {
-                    
+
                     TcpClient client = server.AcceptTcpClient();
                     Debug.WriteLine("\n--- Tcp: Connected! ---");
                     NetworkStream stream = client.GetStream();
@@ -73,7 +64,7 @@ namespace GrowIoT.Services
                                 switch (package.Command)
                                 {
                                     case IoTCommand.Ping:
-                                        response = new GrowPackage<bool>(package.Command,true);
+                                        response = new GrowPackage<bool>(package.Command, true);
                                         break;
                                     case IoTCommand.None:
                                         response = new GrowPackage<bool>(package.Command, true);

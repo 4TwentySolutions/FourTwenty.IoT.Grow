@@ -25,10 +25,26 @@ namespace GrowIoT.Modules
             Name = name;
         }
 
+        protected BaseModule(int? gpioPin = null, List<ModuleRule> rules = null, string name = null) : this(rules, name)
+        {
+            if (gpioPin.HasValue)
+                Pins = new List<int>
+                {
+                    gpioPin.Value
+
+                };
+        }
+
         public virtual void Init(GpioController controller)
         {
             Debug.WriteLine($"--- Module {Name}: Initialized ---");
+
+            if (Pins == null || !Pins.Any())
+                return;
+
             Controller = controller;
+
+            Controller.OpenPin(Pins.FirstOrDefault());
         }
 
         public virtual Task<BaseModuleResponse> ReadData()

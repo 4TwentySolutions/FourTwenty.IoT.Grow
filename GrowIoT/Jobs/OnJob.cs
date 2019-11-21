@@ -1,5 +1,9 @@
-﻿using System.Device.Gpio;
+﻿using System;
+using System.Collections.Generic;
+using System.Device.Gpio;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using GrowIoT.Modules;
 using GrowIoT.Modules.Relays;
@@ -31,6 +35,7 @@ namespace GrowIoT.Jobs
                     gpioPin = module.Pins.FirstOrDefault();
                 }
 
+                Console.WriteLine($"--- {module.Name} -> Low ---");
                 module.SetValue(PinValue.Low, gpioPin);
             }
 

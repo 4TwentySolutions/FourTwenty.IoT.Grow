@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Device.Gpio;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using GrowIoT.Enums;
 using GrowIoT.Jobs;
+using GrowIoT.Models.Shared;
 using GrowIoT.Modules;
 using GrowIoT.Services;
 using Quartz;
@@ -18,7 +20,6 @@ namespace GrowIoT
         private static IList<BaseModule> _modules;
         private static NetworkService _networkService;
         private static IScheduler _scheduler;
-        private static CancellationTokenSource _tokenSource;
 
         public static async Task Main(string[] args)
         {
@@ -34,10 +35,18 @@ namespace GrowIoT
                 _configService.InitConfig(controller, config);
                 _networkService = new NetworkService(config.ListeningPort);
                 Console.WriteLine("--- End init ---");
-                await StartJobs();               
+                await StartJobs();
+
+                _networkService.StartNetwork();
+                _networkService.PackReceive += NetworkServiceOnPackReceive;
 
                 Console.ReadLine();
             }
+        }
+
+        private static void NetworkServiceOnPackReceive(GrowPackage package)
+        {
+            Debug.WriteLine("--- NetworkServiceOnPackReceive ---");
         }
 
         public static async Task StartJobs()
@@ -71,7 +80,13 @@ namespace GrowIoT
                                 case JobType.Off:
                                     jobType = typeof(OffJob);
                                     break;
+                                case JobType.Period:
+                                    jobType = typeof(PeriodJob);
+                                    break;
                             }
+
+                            if (jobType == null)
+                                return;
 
                             var job = JobBuilder.Create(jobType).Build();
                             var trigger = TriggerBuilder.Create()

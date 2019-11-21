@@ -24,14 +24,14 @@ namespace GrowIoT.Modules.Relays
         {
             base.Init(controller);
 
-            Controller.OpenPin(Pins.FirstOrDefault());
+            if (Pins.Any())
+                Controller.SetPinMode(Pins.FirstOrDefault(), PinMode.Output);
 
-            Controller.SetPinMode(Pins.FirstOrDefault(), PinMode.Output);
-
-
-            Controller.OpenPin(Pins.LastOrDefault());
-            Controller.SetPinMode(Pins.LastOrDefault(), PinMode.Output);
-
+            if (Pins.Count > 1)
+            {
+                Controller.OpenPin(Pins.LastOrDefault());
+                Controller.SetPinMode(Pins.LastOrDefault(), PinMode.Output);
+            }
 
             foreach (var subModule in SubModules)
             {

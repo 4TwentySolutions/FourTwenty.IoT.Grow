@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Publish, Launch, and Attach Debugger",
+            "name": "Publish Only",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "publish",
@@ -23,13 +23,13 @@
                     "debuggerPath": "~/vsdbg/vsdbg"
                 }
             }
-        }
+        }        
     ],
     "compounds": [
         {
-          "name": "Full flow",
-          "configurations": ["Publish, Launch, and Attach Debugger"],
+          "name": "Build Deploy Debug",
+          "configurations": ["Publish Only"],
           "preLaunchTask": "build"
-        }
+        },
       ]
 }

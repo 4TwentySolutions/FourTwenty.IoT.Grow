@@ -1,18 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Device.Gpio;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using GrowIoT.Enums;
 using GrowIoT.Models;
 using GrowIoT.Modules;
 using GrowIoT.Modules.Fans;
-using GrowIoT.Modules.Light;
 using GrowIoT.Modules.Relays;
 using GrowIoT.Modules.Sensors;
-using Newtonsoft.Json;
 
 namespace GrowIoT.Services
 {
@@ -82,11 +77,12 @@ namespace GrowIoT.Services
             var fanName = "Fan";
             var dhtName = "Dht Sensor";
             var twoRelayName = "Light&Fan Relay";
+            var waterPump = "Water Pump";
 
             var dhtPin = 4;
             var fanPin = 17;
             var lightPin = 27;
-
+            var waterPin = 27;
             return new ConfigModel
             {
                 ListeningPort = 8001,
@@ -100,8 +96,15 @@ namespace GrowIoT.Services
                             CronExpression = "0/10 0/1 * 1/1 * ? *"
                         }
                     }),
-                    new TwoRelayModule(twoRelayName,lightPin,fanPin,new List<ModuleRule>()
+                    new TwoRelayModule(twoRelayName,waterPin,fanPin,new List<ModuleRule>()
                         {
+                            new PeriodRule
+                            {
+                                ModuleName = waterPump,
+                                Type = JobType.Period,
+                                CronExpression = "0/15 0/1 * 1/1 * ? *",
+                                Period = 5
+                            },                          
                             new ModuleRule
                             {
                                 ModuleName = lightName,
@@ -127,7 +130,8 @@ namespace GrowIoT.Services
                                CronExpression = "0/1 21-59 * ? * *"
                             }
                         })
-                        .AddSubModule(new LightModule(lightName),lightPin)
+                        //.AddSubModule(new LightModule(lightName),lightPin)
+                        .AddSubModule(new WaterPumpModule(name:waterPump),waterPin)
                         .AddSubModule(new FanModule(fanName),fanPin)
                 }
             };
