@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Device.Gpio;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using FourTwenty.IoT.Connect.Constants;
-using FourTwenty.IoT.Connect.Models;
 using FourTwenty.IoT.Connect.Modules;
 using GrowIoT.Extensions;
 using GrowIoT.Interfaces;
@@ -12,6 +10,8 @@ using GrowIoT.Jobs;
 using GrowIoT.Services;
 using Quartz;
 using Quartz.Impl;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
 
 namespace GrowIoT
 {
@@ -19,11 +19,12 @@ namespace GrowIoT
     {
         private static IIotConfigService _configService;
         private static IList<BaseModule> _modules;
-        private static IoTNetworkService _networkService;
         private static IScheduler _scheduler;
 
         public static async Task Main(string[] args)
         {
+
+
             _scheduler = await StdSchedulerFactory.GetDefaultScheduler();
             Console.WriteLine($"--- Scheduler:{ _scheduler != null } ---");
             _configService = new IoTConfigService();
@@ -34,25 +35,24 @@ namespace GrowIoT
                 var config = await _configService.GetConfig();
                 _modules = config.Modules;
                 _configService.InitConfig(controller, config);
-                _networkService = new IoTNetworkService(config.ListeningPort);
                 Console.WriteLine("--- End init ---");
                 await StartJobs();
 
                 var curIp = IpExtensions.GetCurrentIp();
                 if (curIp != null)
-                {
-                    _networkService.PackReceive += NetworkServiceOnPackReceive;
-                    _networkService.StartNetwork(curIp, config.ListeningPort);                    
+                {                    
+                    await CreateWebHostBuilder($"http://{curIp}:{8002}", args).Build().RunAsync();
+                    Console.WriteLine($"--- {curIp} ---");
                 }
 
                 Console.ReadLine();
             }
         }
 
-        private static void NetworkServiceOnPackReceive(GrowPackage package)
-        {
-            Debug.WriteLine("--- NetworkServiceOnPackReceive ---");
-        }
+        public static IWebHostBuilder CreateWebHostBuilder(string url, string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
+                .UseStartup<Startup>()
+                .UseUrls(url);
 
         public static async Task StartJobs()
         {
