@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Device.Gpio;
-using System.Linq;
-using GrowIoT.Enums;
-using GrowIoT.Interfaces;
+using FourTwenty.IoT.Connect.Constants;
+using FourTwenty.IoT.Connect.Modules;
 
 namespace GrowIoT.Modules.Relays
 {

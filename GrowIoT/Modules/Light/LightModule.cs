@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Device.Gpio;
-using GrowIoT.Enums;
-using GrowIoT.Interfaces;
+﻿using System.Collections.Generic;
+using FourTwenty.IoT.Connect.Constants;
+using FourTwenty.IoT.Connect.Modules;
 
 namespace GrowIoT.Modules.Light
 {

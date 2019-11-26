@@ -1,16 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using GrowIoT.Models;
 using System.Diagnostics;
 
 namespace GrowIoT.Extensions
 {
     public static class IpExtensions
     {
-        public static string GetCurrentIp()
+        public static string    GetCurrentIp()
         {
             var proc = new Process
             {
@@ -31,7 +28,7 @@ namespace GrowIoT.Extensions
                 lines.Add(proc.StandardOutput.ReadLine()); //this contains the ip output      
             }
 
-            return lines.Any() ? lines.FirstOrDefault() : null;
+            return lines.Any() ? lines.FirstOrDefault().Replace(" ","") : null;
         }
     }
 }

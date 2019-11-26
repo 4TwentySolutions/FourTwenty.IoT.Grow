@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using GrowIoT.Enums;
+﻿using System.Collections.Generic;
+using FourTwenty.IoT.Connect.Constants;
+using FourTwenty.IoT.Connect.Modules;
 
 namespace GrowIoT.Modules
 {

@@ -2,6 +2,7 @@
 using System.Device.Gpio;
 using System.Linq;
 using System.Threading.Tasks;
+using FourTwenty.IoT.Connect.Modules;
 using GrowIoT.Modules;
 using Quartz;
 
@@ -12,7 +13,7 @@ namespace GrowIoT.Jobs
         public async Task Execute(IJobExecutionContext context)
         {
             JobDataMap dataMap = context.JobDetail.JobDataMap;
-            var module = (BaseModule)dataMap["module"];
+            var module = (IoTBaseModule)dataMap["module"];
             var rule = (PeriodRule)dataMap["rule"];
 
             if (module != null && rule != null)

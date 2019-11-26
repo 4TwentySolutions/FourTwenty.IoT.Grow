@@ -1,38 +1,35 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using GrowIoT.Models.Enums;
-using GrowIoT.Models.Shared;
+using FourTwenty.IoT.Connect.Constants;
+using FourTwenty.IoT.Connect.Interfaces;
+using FourTwenty.IoT.Connect.Models;
 using Newtonsoft.Json;
-using GrowIoT.Extensions;
+
 
 namespace GrowIoT.Services
 {
-    public class NetworkService
+   public class IoTNetworkService : INetworkService
     {
         public delegate void NetworkPack(GrowPackage package);
         public event NetworkPack PackReceive;
 
         private readonly int _port;
 
-        public NetworkService(int port)
+        public IoTNetworkService(int port)
         {
             _port = port;
 
         }
 
-        public void StartNetwork()
+        public void StartNetwork(string ip, int? port = 0)
         {
-            var ip = IpExtensions.GetCurrentIp().Replace(" ","");
-            if (ip != null)
-                StartTcp(IPAddress.Parse(ip), _port);
+            if (IPAddress.TryParse(ip, out var address))
+                StartTcp(address, port.GetValueOrDefault() == 0 ? _port : port.GetValueOrDefault());
         }
 
-
-        private void StartTcp(IPAddress ipAddress, int port)
+        public void StartTcp(IPAddress ipAddress, int port)
         {
             TcpListener server = null;
             try

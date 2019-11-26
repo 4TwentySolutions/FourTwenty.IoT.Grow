@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Device.Gpio;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
-using GrowIoT.Enums;
+using FourTwenty.IoT.Connect.Constants;
+using FourTwenty.IoT.Connect.Models;
+using FourTwenty.IoT.Connect.Modules;
+using GrowIoT.Extensions;
+using GrowIoT.Interfaces;
 using GrowIoT.Jobs;
-using GrowIoT.Models.Shared;
-using GrowIoT.Modules;
 using GrowIoT.Services;
 using Quartz;
 using Quartz.Impl;
@@ -16,16 +17,16 @@ namespace GrowIoT
 {
     class Program
     {
-        private static ConfigService _configService;
+        private static IIotConfigService _configService;
         private static IList<BaseModule> _modules;
-        private static NetworkService _networkService;
+        private static IoTNetworkService _networkService;
         private static IScheduler _scheduler;
 
         public static async Task Main(string[] args)
         {
             _scheduler = await StdSchedulerFactory.GetDefaultScheduler();
             Console.WriteLine($"--- Scheduler:{ _scheduler != null } ---");
-            _configService = new ConfigService();
+            _configService = new IoTConfigService();
 
             using (GpioController controller = new GpioController(PinNumberingScheme.Logical))
             {
@@ -33,12 +34,16 @@ namespace GrowIoT
                 var config = await _configService.GetConfig();
                 _modules = config.Modules;
                 _configService.InitConfig(controller, config);
-                _networkService = new NetworkService(config.ListeningPort);
+                _networkService = new IoTNetworkService(config.ListeningPort);
                 Console.WriteLine("--- End init ---");
                 await StartJobs();
 
-                _networkService.StartNetwork();
-                _networkService.PackReceive += NetworkServiceOnPackReceive;
+                var curIp = IpExtensions.GetCurrentIp();
+                if (curIp != null)
+                {
+                    _networkService.PackReceive += NetworkServiceOnPackReceive;
+                    _networkService.StartNetwork(curIp, config.ListeningPort);                    
+                }
 
                 Console.ReadLine();
             }

@@ -3,16 +3,17 @@ using System.Collections.Generic;
 using System.Device.Gpio;
 using System.Linq;
 using System.Threading.Tasks;
-using GrowIoT.Enums;
-using GrowIoT.Interfaces.Sensors;
-using GrowIoT.Models;
+using FourTwenty.IoT.Connect.Constants;
+using FourTwenty.IoT.Connect.Interfaces.Sensors;
+using FourTwenty.IoT.Connect.Models;
+using FourTwenty.IoT.Connect.Modules;
 using Iot.Device.DHTxx;
 
 namespace GrowIoT.Modules.Sensors
 {
-    public class DhtSensor : BaseModule, ISensor<ModuleResponse<DthData>>
+    public class DhtSensor : IoTBaseModule, ISensor<ModuleResponse<DthData>>
     {
-        public DhtSensor(string name, int gpioPin, List<ModuleRule> rules = null) : base(gpioPin, rules, name)
+        public DhtSensor(string name, int gpioPin, List<ModuleRule> rules = null) : base(name, gpioPin, rules)
         {
             Type = ModuleType.HumidityAndTemperature;
         }

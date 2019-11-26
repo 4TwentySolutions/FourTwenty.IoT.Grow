@@ -3,36 +3,23 @@ using System.Device.Gpio;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using GrowIoT.Enums;
+using FourTwenty.IoT.Connect.Constants;
+using FourTwenty.IoT.Connect.Models;
+using FourTwenty.IoT.Connect.Modules;
 using GrowIoT.Interfaces;
-using GrowIoT.Models;
 using Newtonsoft.Json;
 
 namespace GrowIoT.Modules
 {
-    public abstract class BaseModule : IModule
+    public class IoTBaseModule : BaseModule, IIoTModule
     {
         [JsonIgnore]
         public GpioController Controller;
-        public string Name { get; set; }
-        public List<int> Pins { get; set; }
-        public ModuleType Type { get; protected set; }
-        public List<ModuleRule> Rules { get; set; }
 
-        protected BaseModule(List<ModuleRule> rules = null, string name = null)
+
+        public IoTBaseModule(string name, int? gpio, List<ModuleRule> rules) : base(gpio, rules, name)
         {
-            Rules = rules;
-            Name = name;
-        }
 
-        protected BaseModule(int? gpioPin = null, List<ModuleRule> rules = null, string name = null) : this(rules, name)
-        {
-            if (gpioPin.HasValue)
-                Pins = new List<int>
-                {
-                    gpioPin.Value
-
-                };
         }
 
         public virtual void Init(GpioController controller)

@@ -1,15 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Device.Gpio;
 using System.Linq;
-using GrowIoT.Enums;
+using FourTwenty.IoT.Connect.Constants;
+using FourTwenty.IoT.Connect.Modules;
 
 namespace GrowIoT.Modules.Relays
 {
-    public class TwoRelayModule : BaseModule
+    public class TwoRelayModule : IoTBaseModule
     {
-        public Dictionary<int, BaseModule> SubModules { get; set; } = new Dictionary<int, BaseModule>();
+        public Dictionary<int, IoTBaseModule> SubModules { get; set; } = new Dictionary<int, IoTBaseModule>();
 
-        public TwoRelayModule(string name, int firstGpioPin, int secondGpioPin, List<ModuleRule> rules = null) : base(rules, name)
+        public TwoRelayModule(string name, int firstGpioPin, int secondGpioPin, List<ModuleRule> rules = null) : base(name, null, rules)
         {
             Pins = new List<int>
             {
@@ -39,7 +40,7 @@ namespace GrowIoT.Modules.Relays
             }
         }
 
-        public TwoRelayModule AddSubModule(BaseModule subModule, int gpioPin)
+        public TwoRelayModule AddSubModule(IoTBaseModule subModule, int gpioPin)
         {
             SubModules.Add(gpioPin, subModule);
             return this;
