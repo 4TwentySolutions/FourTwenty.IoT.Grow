@@ -17,6 +17,7 @@ namespace GrowIoT.Hubs
         #region OnConnectedAsync
         public override async Task OnConnectedAsync()
         {
+            Console.WriteLine("--- User Connected ---");
             await Groups.AddToGroupAsync(Context.ConnectionId, "SignalR Users");
             await base.OnConnectedAsync();
         }
@@ -25,6 +26,7 @@ namespace GrowIoT.Hubs
         #region OnDisconnectedAsync
         public override async Task OnDisconnectedAsync(Exception exception)
         {
+            Console.WriteLine("--- User Disconnected ---");
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, "SignalR Users");
             await base.OnDisconnectedAsync(exception);
         }
