@@ -1,21 +1,21 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Device.Gpio;
 using System.Threading.Tasks;
 using FourTwenty.IoT.Connect.Constants;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Quartz;
+using Quartz.Impl;
 using FourTwenty.IoT.Connect.Modules;
-using GrowIoT.Extensions;
 using GrowIoT.Interfaces;
 using GrowIoT.Jobs;
 using GrowIoT.Services;
-using Quartz;
-using Quartz.Impl;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
 
 namespace GrowIoT
 {
-    class Program
+    public class Program
     {
         private static IIotConfigService _configService;
         private static IList<BaseModule> _modules;
@@ -23,36 +23,47 @@ namespace GrowIoT
 
         public static async Task Main(string[] args)
         {
-
-
             _scheduler = await StdSchedulerFactory.GetDefaultScheduler();
             Console.WriteLine($"--- Scheduler:{ _scheduler != null } ---");
             _configService = new IoTConfigService();
-
-            using (GpioController controller = new GpioController(PinNumberingScheme.Logical))
+            try
             {
+                using GpioController controller = new GpioController(PinNumberingScheme.Logical);
                 Console.WriteLine("--- Start init ---");
                 var config = await _configService.GetConfig();
                 _modules = config.Modules;
                 _configService.InitConfig(controller, config);
                 Console.WriteLine("--- End init ---");
                 await StartJobs();
-
-                var curIp = IpExtensions.GetCurrentIp();
-                if (curIp != null)
-                {                    
-                    await CreateWebHostBuilder($"http://{curIp}:{8002}", args).Build().RunAsync();
-                    Console.WriteLine($"--- {curIp} ---");
-                }
-
-                Console.ReadLine();
             }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            
+            CreateHostBuilder(args).Build().Run();
         }
 
-        public static IWebHostBuilder CreateWebHostBuilder(string url, string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>()
-                .UseUrls(url);
+        public static IHostBuilder CreateHostBuilder(string[] args)
+        {
+            Console.WriteLine("--- Starting Server ---");
+            var configuration = new ConfigurationBuilder()
+            .AddCommandLine(args)
+            .Build();
+
+
+            var hostUrl = configuration["hosturl"];
+            if (string.IsNullOrEmpty(hostUrl))
+                hostUrl = "http://0.0.0.0:5000";
+
+
+            return Host.CreateDefaultBuilder(args)
+                            .ConfigureWebHostDefaults(webBuilder =>
+                            {
+                                webBuilder.UseUrls(hostUrl);
+                                webBuilder.UseStartup<Startup>();
+                            });
+        }
 
         public static async Task StartJobs()
         {

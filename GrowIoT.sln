@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
-VisualStudioVersion = 16.0.29102.190
+VisualStudioVersion = 16.0.29519.181
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GrowIoT", "GrowIoT\GrowIoT.csproj", "{0E3935C5-D712-4141-9043-77381D918129}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrowIoT", "GrowIoT\GrowIoT.csproj", "{F617A8E7-DF3C-48AC-B36F-8E8F7451F7D5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,19 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{0E3935C5-D712-4141-9043-77381D918129}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0E3935C5-D712-4141-9043-77381D918129}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0E3935C5-D712-4141-9043-77381D918129}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0E3935C5-D712-4141-9043-77381D918129}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0D2014E6-EF3E-4022-84B5-0FDD2682899F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0D2014E6-EF3E-4022-84B5-0FDD2682899F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0D2014E6-EF3E-4022-84B5-0FDD2682899F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0D2014E6-EF3E-4022-84B5-0FDD2682899F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F617A8E7-DF3C-48AC-B36F-8E8F7451F7D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F617A8E7-DF3C-48AC-B36F-8E8F7451F7D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F617A8E7-DF3C-48AC-B36F-8E8F7451F7D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F617A8E7-DF3C-48AC-B36F-8E8F7451F7D5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {C9EAFE0D-5960-4EEF-823F-664BD7C37213}
+		SolutionGuid = {0A5496F1-89D7-410D-A25C-DA562C9211CA}
 	EndGlobalSection
 EndGlobal
