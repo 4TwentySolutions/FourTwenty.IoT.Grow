@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.Device.Gpio;
 using System.Text;
 using System.Threading.Tasks;
-using FourTwenty.IoT.Connect.Interfaces;
-using FourTwenty.IoT.Connect.Models.Config;
+using FourTwenty.IoT.Connect.Dto;
 
 namespace GrowIoT.Interfaces
 {
-    public interface IIotConfigService
+    public interface IIoTConfigService
     {
-        void InitConfig(GpioController controller, ConfigModel config = null);
-
-        Task<ConfigModel> GetConfig();
+        void InitConfig(GpioController controller, ConfigDto config = null);
+        Task<ConfigDto> GetConfig();
+        Task<long> UpdateConfig(ConfigDto model);
     }
 }

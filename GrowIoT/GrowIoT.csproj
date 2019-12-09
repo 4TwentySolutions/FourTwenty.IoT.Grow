@@ -7,8 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FourTwenty.IoT.Connect" Version="1.0.0-pre6" />
+    <PackageReference Include="FourTwenty.IoT.Connect" Version="1.0.0-pre7" />
     <PackageReference Include="Iot.Device.Bindings" Version="1.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.0" />
     <PackageReference Include="Quartz" Version="3.0.7" />
     <PackageReference Include="System.Device.Gpio" Version="1.0.0" />
   </ItemGroup>

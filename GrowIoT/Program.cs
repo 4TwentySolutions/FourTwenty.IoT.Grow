@@ -17,7 +17,7 @@ namespace GrowIoT
 {
     public class Program
     {
-        private static IIotConfigService _configService;
+        private static IIoTConfigService _configService;
         private static IList<BaseModule> _modules;
         private static IScheduler _scheduler;
 
@@ -26,11 +26,11 @@ namespace GrowIoT
             _scheduler = await StdSchedulerFactory.GetDefaultScheduler();
             Console.WriteLine($"--- Scheduler:{ _scheduler != null } ---");
             _configService = new IoTConfigService();
+            var config = await _configService.GetConfig();
             try
             {
                 using GpioController controller = new GpioController(PinNumberingScheme.Logical);
                 Console.WriteLine("--- Start init ---");
-                var config = await _configService.GetConfig();
                 _modules = config.Modules;
                 _configService.InitConfig(controller, config);
                 Console.WriteLine("--- End init ---");

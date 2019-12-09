@@ -4,25 +4,25 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using FourTwenty.IoT.Connect.Models.Config;
+using FourTwenty.IoT.Connect.Dto;
 using GrowIoT.Interfaces;
 using GrowIoT.Modules;
 using Newtonsoft.Json;
 
 namespace GrowIoT.Services
 {
-    public class IoTConfigService : IIotConfigService
+    public class IoTConfigService : IIoTConfigService
     {
-        private ConfigModel _currentConfig;
+        private ConfigDto _currentConfig;
 
-        public void InitConfig(GpioController controller, ConfigModel config = null)
+        public void InitConfig(GpioController controller, ConfigDto config = null)
         {
             if (config != null)
             {
                 _currentConfig = config;
             }
 
-            if (_currentConfig == null || _currentConfig.Modules == null)
+            if (_currentConfig?.Modules == null)
                 return;
 
             foreach (var module in _currentConfig.Modules)
@@ -32,39 +32,52 @@ namespace GrowIoT.Services
             }
         }
 
-        public async Task<ConfigModel> GetConfig()
+        public async Task<ConfigDto> GetConfig()
         {
             
-            ConfigModel config;
+            ConfigDto config;
             
             try
             {
-                string storageFolderPath = Directory.GetCurrentDirectory();
-                var filePath = Path.Combine(storageFolderPath, "config.txt");
-                Debug.WriteLine($"--- Config path: {filePath}\n");
+
+                var filePath = Constants.Constants.ConfigPath;
                 if (!File.Exists(filePath))
                 {
-                    config = new ConfigModel();
-                    using (var fs = File.Create(filePath))
-                    {
-                        var info = new UTF8Encoding(true).GetBytes(JsonConvert.SerializeObject(config));
-                        // Add some information to the file.
-                        fs.Write(info, 0, info.Length);
-                    }
+                    config = new ConfigDto();
+                    await using var fs = File.Create(filePath);
+                    var info = new UTF8Encoding(true).GetBytes(JsonConvert.SerializeObject(config));
+                    // Add some information to the file.
+                    fs.Write(info, 0, info.Length);
                 }
                 else
                 {
                     var content = await File.ReadAllTextAsync(filePath);
-                    config = JsonConvert.DeserializeObject<ConfigModel>(content);
+                    config = JsonConvert.DeserializeObject<ConfigDto>(content);
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine($"\n--- !!! Exception !!! ---\n");
                 Console.WriteLine($"--- {e.Message} ---\n");
-                config = new ConfigModel();
+                config = new ConfigDto();
             }
             return _currentConfig = config;
+        }
+
+        public async Task<long> UpdateConfig(ConfigDto model)
+        {
+            try
+            {
+                model.CurrentVersion = DateTime.Now.Ticks;
+                var filePath = Constants.Constants.ConfigPath;
+                await File.WriteAllTextAsync(filePath,JsonConvert.SerializeObject(model));
+                return model.CurrentVersion;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return -1;
+            }
         }
     }
 }

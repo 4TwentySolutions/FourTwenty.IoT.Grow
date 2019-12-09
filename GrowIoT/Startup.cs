@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
@@ -10,6 +11,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using GrowIoT.Data;
 using GrowIoT.Hubs;
+using GrowIoT.Interfaces;
+using GrowIoT.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace GrowIoT
 {
@@ -26,10 +31,34 @@ namespace GrowIoT
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddMvc(options => options.EnableEndpointRouting = false)
+                .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+
             services.AddRazorPages();
-            services.AddSignalR();
             services.AddServerSideBlazor();
+            services.AddSignalR();
+
+            services.AddScoped<IIoTConfigService, IoTConfigService>();
+
             services.AddSingleton<WeatherForecastService>();
+            services.AddHealthChecks().AddCheck("ping", () =>
+            {
+                try
+                {
+                    using var ping = new Ping();
+                    var reply = ping.Send("www.google.com");
+
+                    if (reply == null)
+                        return HealthCheckResult.Unhealthy();
+
+                    return reply.Status != IPStatus.Success ? HealthCheckResult.Unhealthy() :
+                        reply.RoundtripTime > 100 ? HealthCheckResult.Degraded() : HealthCheckResult.Healthy();
+                }
+                catch
+                {
+                    return HealthCheckResult.Unhealthy();
+                }
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -47,6 +76,9 @@ namespace GrowIoT
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseHealthChecks("/ping");
+            app.UseMvcWithDefaultRoute();
 
             app.UseEndpoints(endpoints =>
             {
