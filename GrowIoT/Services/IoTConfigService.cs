@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Device.Gpio;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,9 +13,15 @@ namespace GrowIoT.Services
     public class IoTConfigService : IIoTConfigService
     {
         private ConfigDto _currentConfig;
+        private GpioController _gpioController;
 
-        public void InitConfig(GpioController controller, ConfigDto config = null)
+        public void InitConfig(GpioController controller = null, ConfigDto config = null)
         {
+            if (controller != null)
+            {
+                _gpioController = controller;
+            }
+
             if (config != null)
             {
                 _currentConfig = config;
@@ -28,15 +33,15 @@ namespace GrowIoT.Services
             foreach (var module in _currentConfig.Modules)
             {
                 if (module is IoTBaseModule mod)
-                    mod.Init(controller);
+                    mod.Init(_gpioController);
             }
         }
 
         public async Task<ConfigDto> GetConfig()
         {
-            
+
             ConfigDto config;
-            
+
             try
             {
 
@@ -70,7 +75,7 @@ namespace GrowIoT.Services
             {
                 model.CurrentVersion = DateTime.Now.Ticks;
                 var filePath = Constants.Constants.ConfigPath;
-                await File.WriteAllTextAsync(filePath,JsonConvert.SerializeObject(model));
+                await File.WriteAllTextAsync(filePath, JsonConvert.SerializeObject(model));
                 return model.CurrentVersion;
             }
             catch (Exception e)

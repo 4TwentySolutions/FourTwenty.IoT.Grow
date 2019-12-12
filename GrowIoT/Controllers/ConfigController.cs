@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using FourTwenty.IoT.Connect.Dto;
 using GrowIoT.Interfaces;
@@ -14,9 +12,11 @@ namespace GrowIoT.Controllers
     public class ConfigController : ControllerBase
     {
         private readonly IIoTConfigService _ioTConfigService;
-        public ConfigController(IIoTConfigService ioTConfigService)
+        private readonly IJobsService _jobsService;
+        public ConfigController(IIoTConfigService ioTConfigService, IJobsService jobsService)
         {
             _ioTConfigService = ioTConfigService;
+            _jobsService = jobsService;
         }
 
         [HttpGet]
@@ -65,7 +65,11 @@ namespace GrowIoT.Controllers
                 var currentConfigVersion = await _ioTConfigService.UpdateConfig(model);
                 if (currentConfigVersion > 0)
                 {
-                    
+                    await _jobsService.StopJobs();
+
+                    var currentConfig = await _ioTConfigService.GetConfig();
+                    _ioTConfigService.InitConfig(null, currentConfig);
+                    await _jobsService.StartJobs(currentConfig);
 
                     return new JsonResult(currentConfigVersion);
                 }

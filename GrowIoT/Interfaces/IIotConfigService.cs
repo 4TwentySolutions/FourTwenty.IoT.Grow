@@ -9,7 +9,7 @@ namespace GrowIoT.Interfaces
 {
     public interface IIoTConfigService
     {
-        void InitConfig(GpioController controller, ConfigDto config = null);
+        void InitConfig(GpioController controller = null, ConfigDto config = null);
         Task<ConfigDto> GetConfig();
         Task<long> UpdateConfig(ConfigDto model);
     }

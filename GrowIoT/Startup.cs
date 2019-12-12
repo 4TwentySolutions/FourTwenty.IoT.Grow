@@ -1,15 +1,11 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Device.Gpio;
 using System.Net.NetworkInformation;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using GrowIoT.Data;
 using GrowIoT.Hubs;
 using GrowIoT.Interfaces;
 using GrowIoT.Services;
@@ -39,8 +35,8 @@ namespace GrowIoT
             services.AddSignalR();
 
             services.AddScoped<IIoTConfigService, IoTConfigService>();
+            services.AddSingleton<IJobsService, JobsService>();
 
-            services.AddSingleton<WeatherForecastService>();
             services.AddHealthChecks().AddCheck("ping", () =>
             {
                 try
@@ -62,7 +58,7 @@ namespace GrowIoT
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public async void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider)
         {
             if (env.IsDevelopment())
             {
@@ -86,6 +82,19 @@ namespace GrowIoT
                 endpoints.MapHub<CommandsHub>("/commandsHub");
                 endpoints.MapFallbackToPage("/_Host");
             });
+
+            try
+            {
+                var configService = (IIoTConfigService)serviceProvider.GetService(typeof(IIoTConfigService));
+
+                var config = await configService.GetConfig();
+                using GpioController controller = new GpioController(PinNumberingScheme.Logical);
+                configService.InitConfig(controller, config);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
     }
 }
