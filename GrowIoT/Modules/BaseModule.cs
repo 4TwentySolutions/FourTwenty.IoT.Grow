@@ -3,9 +3,8 @@ using System.Device.Gpio;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using FourTwenty.IoT.Connect.Constants;
+using FourTwenty.IoT.Connect.Dto;
 using FourTwenty.IoT.Connect.Models;
-using FourTwenty.IoT.Connect.Modules;
 using GrowIoT.Interfaces;
 using Newtonsoft.Json;
 
@@ -17,7 +16,7 @@ namespace GrowIoT.Modules
         public GpioController Controller;
 
 
-        public IoTBaseModule(string name, int? gpio, List<ModuleRule> rules) : base(gpio, rules, name)
+        public IoTBaseModule(string name, int? gpio, List<ModuleRuleDto> rules) : base(gpio, rules, name)
         {
 
         }
@@ -34,9 +33,9 @@ namespace GrowIoT.Modules
             Controller.OpenPin(Pins.FirstOrDefault());
         }
 
-        public virtual Task<BaseModuleResponse> ReadData()
+        public virtual Task<ModuleResponse> ReadData()
         {
-            return Task.FromResult(new BaseModuleResponse()
+            return Task.FromResult(new ModuleResponse()
             {
                 IsSuccess = true,
                 Message = "base module result"

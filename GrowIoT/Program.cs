@@ -1,17 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Device.Gpio;
 using System.Threading.Tasks;
-using FourTwenty.IoT.Connect.Constants;
-using FourTwenty.IoT.Connect.Dto;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Quartz;
-using Quartz.Impl;
-using FourTwenty.IoT.Connect.Modules;
 using GrowIoT.Interfaces;
-using GrowIoT.Jobs;
 using GrowIoT.Services;
 
 namespace GrowIoT

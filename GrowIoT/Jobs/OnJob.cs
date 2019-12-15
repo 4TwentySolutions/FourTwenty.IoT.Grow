@@ -5,9 +5,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using FourTwenty.IoT.Connect.Modules;
+using FourTwenty.IoT.Connect.Dto;
 using GrowIoT.Modules;
-using GrowIoT.Modules.Relays;
 using Quartz;
 
 
@@ -19,12 +18,12 @@ namespace GrowIoT.Jobs
         {
             JobDataMap dataMap = context.JobDetail.JobDataMap;
             var module = (IoTBaseModule)dataMap["module"];
-            var rule = (ModuleRule)dataMap["rule"];
+            var rule = (ModuleRuleDto)dataMap["rule"];
 
             if (module != null && rule != null)
             {
                 int? gpioPin = null;
-                if (!string.IsNullOrEmpty(rule.ModuleName))
+                /*if (!string.IsNullOrEmpty(rule.ModuleName))
                 {
                     if (module is TwoRelayModule twoRelay)
                     {
@@ -34,7 +33,9 @@ namespace GrowIoT.Jobs
                 else
                 {
                     gpioPin = module.Pins.FirstOrDefault();
-                }
+                }*/
+
+                gpioPin = module.Pins.FirstOrDefault();
 
                 Console.WriteLine($"--- {module.Name} -> Low ---");
                 module.SetValue(PinValue.Low, gpioPin);

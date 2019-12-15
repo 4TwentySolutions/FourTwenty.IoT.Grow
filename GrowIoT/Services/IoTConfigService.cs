@@ -3,9 +3,11 @@ using System.Device.Gpio;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using FourTwenty.IoT.Connect.Constants;
 using FourTwenty.IoT.Connect.Dto;
 using GrowIoT.Interfaces;
 using GrowIoT.Modules;
+using GrowIoT.Modules.Sensors;
 using Newtonsoft.Json;
 
 namespace GrowIoT.Services
@@ -32,8 +34,14 @@ namespace GrowIoT.Services
 
             foreach (var module in _currentConfig.Modules)
             {
-                if (module is IoTBaseModule mod)
-                    mod.Init(_gpioController);
+                IoTBaseModule mod = null;
+                if (module.Type == ModuleType.HumidityAndTemperature)
+                {
+                    mod = new DhtSensor(module.Name, module.Pin.GetValueOrDefault(), module.Rules);
+                }
+
+                if (_gpioController != null)
+                    mod?.Init(_gpioController);
             }
         }
 

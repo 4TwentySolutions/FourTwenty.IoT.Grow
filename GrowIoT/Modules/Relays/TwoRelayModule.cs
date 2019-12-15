@@ -2,7 +2,7 @@
 using System.Device.Gpio;
 using System.Linq;
 using FourTwenty.IoT.Connect.Constants;
-using FourTwenty.IoT.Connect.Modules;
+using FourTwenty.IoT.Connect.Dto;
 
 namespace GrowIoT.Modules.Relays
 {
@@ -10,7 +10,7 @@ namespace GrowIoT.Modules.Relays
     {
         public Dictionary<int, IoTBaseModule> SubModules { get; set; } = new Dictionary<int, IoTBaseModule>();
 
-        public TwoRelayModule(string name, int firstGpioPin, int secondGpioPin, List<ModuleRule> rules = null) : base(name, null, rules)
+        public TwoRelayModule(string name, int firstGpioPin, int secondGpioPin, List<ModuleRuleDto> rules = null) : base(name, null, rules)
         {
             Pins = new List<int>
             {

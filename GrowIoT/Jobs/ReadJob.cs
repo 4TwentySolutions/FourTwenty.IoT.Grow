@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Threading.Tasks;
+using FourTwenty.IoT.Connect.Dto;
 using FourTwenty.IoT.Connect.Models;
-using FourTwenty.IoT.Connect.Modules;
 using GrowIoT.Modules;
 using GrowIoT.Modules.Sensors;
 using Quartz;
@@ -15,12 +15,12 @@ namespace GrowIoT.Jobs
 
             JobDataMap dataMap = context.JobDetail.JobDataMap;
             var module = (IoTBaseModule)dataMap["module"];
-            var rule = (ModuleRule)dataMap["rule"];
+            var rule = (ModuleRuleDto)dataMap["rule"];
 
             if (module != null && rule != null)
             {
                 var readResult = await module.ReadData();
-                if (readResult is ModuleResponse<DthData> dhtResult)
+                if (readResult is ModuleDataResponse<DthData> dhtResult)
                 {
                     if (dhtResult.IsSuccess)
                     {
