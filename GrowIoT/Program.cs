@@ -15,7 +15,8 @@ namespace GrowIoT
         public static async Task Main(string[] args)
         {
             _configService = new IoTConfigService();
-            var config = await _configService.GetConfig();
+
+            var config = await _configService.LoadConfig();
             CreateHostBuilder(args, config.ListeningPort).Build().Run();
         }
 

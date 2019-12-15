@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Device.Gpio;
 using System.IO;
 using System.Text;
@@ -16,43 +17,14 @@ namespace GrowIoT.Services
     {
         private ConfigDto _currentConfig;
         private GpioController _gpioController;
+        private IList<IoTBaseModule> _modules;
 
-        public void InitConfig(GpioController controller = null, ConfigDto config = null)
+        public async Task<ConfigDto> LoadConfig()
         {
-            if (controller != null)
-            {
-                _gpioController = controller;
-            }
-
-            if (config != null)
-            {
-                _currentConfig = config;
-            }
-
-            if (_currentConfig?.Modules == null)
-                return;
-
-            foreach (var module in _currentConfig.Modules)
-            {
-                IoTBaseModule mod = null;
-                if (module.Type == ModuleType.HumidityAndTemperature)
-                {
-                    mod = new DhtSensor(module.Name, module.Pin.GetValueOrDefault(), module.Rules);
-                }
-
-                if (_gpioController != null)
-                    mod?.Init(_gpioController);
-            }
-        }
-
-        public async Task<ConfigDto> GetConfig()
-        {
-
             ConfigDto config;
 
             try
             {
-
                 var filePath = Constants.Constants.ConfigPath;
                 if (!File.Exists(filePath))
                 {
@@ -75,6 +47,48 @@ namespace GrowIoT.Services
                 config = new ConfigDto();
             }
             return _currentConfig = config;
+        }
+
+        public void InitConfig(GpioController controller = null, ConfigDto config = null)
+        {
+            if (controller != null)
+            {
+                _gpioController = controller;
+            }
+
+            if (config != null)
+            {
+                _currentConfig = config;
+            }
+
+            if (_currentConfig?.Modules == null)
+                return;
+
+            _modules = new List<IoTBaseModule>();
+
+            foreach (var module in _currentConfig.Modules)
+            {
+                IoTBaseModule mod = null;
+                if (module.Type == ModuleType.HumidityAndTemperature)
+                {
+                    mod = new DhtSensor(module.Name, module.Pin.GetValueOrDefault(), module.Rules);
+                }
+
+                if (_gpioController != null)
+                    mod?.Init(_gpioController);
+
+                _modules.Add(mod);
+            }
+        }
+
+        public ConfigDto GetConfig()
+        {
+            return _currentConfig;
+        }
+
+        public IList<IoTBaseModule> GetModules()
+        {
+            return _modules;
         }
 
         public async Task<long> UpdateConfig(ConfigDto model)

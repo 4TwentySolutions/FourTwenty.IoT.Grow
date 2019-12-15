@@ -87,7 +87,7 @@ namespace GrowIoT
             {
                 var configService = (IIoTConfigService)serviceProvider.GetService(typeof(IIoTConfigService));
 
-                var config = await configService.GetConfig();
+                var config = await configService.LoadConfig();
                 using GpioController controller = new GpioController(PinNumberingScheme.Logical);
                 configService.InitConfig(controller, config);
             }

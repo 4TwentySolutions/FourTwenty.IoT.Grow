@@ -25,7 +25,7 @@ namespace GrowIoT.Controllers
         {
             try
             {
-                var currentConfig = await _ioTConfigService.GetConfig();
+                var currentConfig = _ioTConfigService.GetConfig();
                 return new JsonResult(currentConfig);
             }
             catch (Exception e)
@@ -41,7 +41,7 @@ namespace GrowIoT.Controllers
         {
             try
             {
-                var currentConfig = await _ioTConfigService.GetConfig();
+                var currentConfig = _ioTConfigService.GetConfig();
                 if (currentConfig != null)
                 {
                     return new JsonResult(currentConfig.CurrentVersion);
@@ -67,9 +67,12 @@ namespace GrowIoT.Controllers
                 {
                     await _jobsService.StopJobs();
 
-                    var currentConfig = await _ioTConfigService.GetConfig();
-                    _ioTConfigService.InitConfig(null, currentConfig);
-                    await _jobsService.StartJobs(currentConfig);
+                    var loadedConfig = await _ioTConfigService.LoadConfig();
+                    _ioTConfigService.InitConfig(null, loadedConfig);
+                    var currentModules = _ioTConfigService.GetModules();
+
+                    await _jobsService.Init();
+                    await _jobsService.StartJobs(currentModules);
 
                     return new JsonResult(currentConfigVersion);
                 }

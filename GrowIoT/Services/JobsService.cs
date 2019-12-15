@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using FourTwenty.IoT.Connect.Constants;
 using FourTwenty.IoT.Connect.Dto;
 using GrowIoT.Interfaces;
 using GrowIoT.Jobs;
+using GrowIoT.Modules;
 using Quartz;
 using Quartz.Impl;
 
@@ -18,16 +21,15 @@ namespace GrowIoT.Services
             _scheduler = await StdSchedulerFactory.GetDefaultScheduler();
         }
 
-        public async Task StartJobs(ConfigDto config)
+        public async Task StartJobs(IList<IoTBaseModule> modules)
         {
             try
             {
-                Console.WriteLine($"--- Jobs starting --- version: {config.CurrentVersion}");
                 await _scheduler.Start();
 
-                if (config.Modules != null)
+                if (modules != null)
                 {
-                    foreach (var sensor in config.Modules)
+                    foreach (var sensor in modules)
                     {
                         if (sensor.Rules != null)
                         {

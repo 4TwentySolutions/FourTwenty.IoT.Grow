@@ -1,1 +1,1 @@
-{"Modules":[{"Name":"Dht","Type":3,"Pin":4,"Pins":null,"Rules":[]}],"ListeningPort":5000,"CurrentVersion":637120094428209990}
+{"Modules":[{"Name":"Dht","Type":3,"Pin":4,"Pins":null,"Rules":[{"CronExpression":"0/10 0/1 * 1/1 * ? *","Type":1,"Period":0}]}],"ListeningPort":5000,"CurrentVersion":637120513593217628}
