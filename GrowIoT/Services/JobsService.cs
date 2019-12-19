@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using FourTwenty.IoT.Connect.Constants;
 using FourTwenty.IoT.Connect.Dto;
+using GrowIoT.Hubs;
 using GrowIoT.Interfaces;
 using GrowIoT.Jobs;
 using GrowIoT.Modules;
+using Microsoft.AspNetCore.SignalR;
 using Quartz;
 using Quartz.Impl;
 
@@ -15,6 +17,12 @@ namespace GrowIoT.Services
     public class JobsService : IJobsService
     {
         private IScheduler _scheduler;
+        private readonly IHubService _hubService;
+
+        public JobsService(IHubService hubService)
+        {
+            _hubService = hubService;
+        }
 
         public async Task Init()
         {
@@ -76,6 +84,7 @@ namespace GrowIoT.Services
 
                                 job.JobDataMap.Add("module", sensor);
                                 job.JobDataMap.Add("rule", moduleRule);
+                                job.JobDataMap.Add(nameof(IHubService),_hubService);
 
                                 await _scheduler.ScheduleJob(job, trigger);
                             }

@@ -2,8 +2,12 @@
 using System.Threading.Tasks;
 using FourTwenty.IoT.Connect.Dto;
 using FourTwenty.IoT.Connect.Models;
+using GrowIoT.Hubs;
+using GrowIoT.Interfaces;
 using GrowIoT.Modules;
 using GrowIoT.Modules.Sensors;
+using Microsoft.AspNetCore.SignalR;
+using Newtonsoft.Json;
 using Quartz;
 
 namespace GrowIoT.Jobs
@@ -13,15 +17,20 @@ namespace GrowIoT.Jobs
         public async Task Execute(IJobExecutionContext context)
         {
 
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
+            var dataMap = context.JobDetail.JobDataMap;
             var module = (IoTBaseModule)dataMap["module"];
             var rule = (ModuleRuleDto)dataMap["rule"];
+            var hub = (IHubService)dataMap[nameof(IHubService)];
+
 
             if (module != null && rule != null)
             {
                 var readResult = await module.ReadData();
                 if (readResult is ModuleDataResponse<DthData> dhtResult)
                 {
+                    if (hub != null)
+                        await hub.SendMessage("ReceiveMessage", JsonConvert.SerializeObject(readResult));
+
                     if (dhtResult.IsSuccess)
                     {
                         Debug.Write("\n--- Dht Sensor Data ---\n");

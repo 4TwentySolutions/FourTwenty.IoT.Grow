@@ -4,6 +4,11 @@
     <Authors>Anton Yaroshenko, Pavel Kurianov, 4Twenty Solutions</Authors>
     <Company>4Twenty Solutions</Company>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Configurations>Debug;Release;DebugLocalWin</Configurations>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugLocalWin|AnyCPU'">
+    <DefineConstants>TRACE;TRACE,DebugLocalWin</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

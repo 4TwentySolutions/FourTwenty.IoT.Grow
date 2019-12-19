@@ -1,6 +1,7 @@
 using System;
 using System.Device.Gpio;
 using System.Net.NetworkInformation;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -36,6 +37,7 @@ namespace GrowIoT
 
             services.AddScoped<IIoTConfigService, IoTConfigService>();
             services.AddSingleton<IJobsService, JobsService>();
+            services.AddSingleton<IHubService, HubService>();
 
             services.AddHealthChecks().AddCheck("ping", () =>
             {
@@ -83,13 +85,32 @@ namespace GrowIoT
                 endpoints.MapFallbackToPage("/_Host");
             });
 
+            await InitIoT(serviceProvider);
+        }
+
+        private static async Task InitIoT(IServiceProvider serviceProvider)
+        {
             try
             {
                 var configService = (IIoTConfigService)serviceProvider.GetService(typeof(IIoTConfigService));
+                var jobsService = (IJobsService)serviceProvider.GetService(typeof(IJobsService));
 
                 var config = await configService.LoadConfig();
+
+#if DebugLocalWin
+
+                configService.InitConfig(null, config);
+
+                await jobsService.Init();
+                await jobsService.StartJobs(configService.GetModules());
+
+#else
                 using GpioController controller = new GpioController(PinNumberingScheme.Logical);
                 configService.InitConfig(controller, config);
+
+                await jobsService.Init();
+                await jobsService.StartJobs(configService.GetModules());
+#endif
             }
             catch (Exception e)
             {
