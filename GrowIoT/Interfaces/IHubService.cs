@@ -7,6 +7,6 @@ namespace GrowIoT.Interfaces
 {
     public interface IHubService
     {
-        Task SendMessage(string key, string value);
+        Task SendMessage(string key, params object[] value);
     }
 }

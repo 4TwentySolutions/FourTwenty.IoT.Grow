@@ -14,9 +14,9 @@ namespace GrowIoT.Services
             _hubContext = hubContext;
         }
 
-        public async Task SendMessage(string key, string value)
+        public async Task SendMessage(string key, params object[] value)
         {
-            await _hubContext.Clients.All.SendAsync(key, value);
+            await _hubContext.Clients.All.SendCoreAsync(key, value);
         }
     }
 }
