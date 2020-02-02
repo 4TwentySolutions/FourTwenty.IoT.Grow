@@ -12,9 +12,9 @@ using FourTwenty.IoT.Connect.Interfaces;
 
 namespace GrowIoT.Modules.Sensors
 {
-    public class DhtSensor : IoTBaseModule, ISensor<ModuleDataResponse<DthData>>
+    public class DhtSensor : IoTBaseModule, ISensor<ModuleResponse<DthData>>
     {
-        public ModuleDataResponse<DthData> Value { get; }
+        public ModuleResponse<DthData> Value { get; }
         public string SensorName { get; }
 
         public DhtSensor(string name, int gpioPin, List<ModuleRuleDto> rules = null) : base(name, gpioPin, rules)
@@ -29,9 +29,9 @@ namespace GrowIoT.Modules.Sensors
             Controller.SetPinMode(Pins.FirstOrDefault(), PinMode.Output);
         }
 
-        public async Task<ModuleDataResponse<DthData>> GetData()
+        public async Task<ModuleResponse<DthData>> GetData()
         {
-            var result = new ModuleDataResponse<DthData>();
+            var result = new ModuleResponse<DthData>();
             try
             {
                 var dht11 = new Dht11(Pins.FirstOrDefault(), PinNumberingScheme.Logical);

@@ -22,7 +22,7 @@ namespace GrowIoT.Jobs
                 return;
 
             var readResult = await module.ReadData();
-            if (readResult is ModuleDataResponse<DthData> dhtResult)
+            if (readResult is ModuleResponse<DthData> dhtResult)
             {
                 await hub.SendMessage(module.Name, dhtResult);
             }
