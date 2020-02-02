@@ -6,9 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using FourTwenty.IoT.Connect.Constants;
 using FourTwenty.IoT.Connect.Dto;
+using FourTwenty.IoT.Server.Components;
+using FourTwenty.IoT.Server.Components.Sensors;
 using GrowIoT.Interfaces;
-using GrowIoT.Modules;
-using GrowIoT.Modules.Sensors;
 using Newtonsoft.Json;
 
 namespace GrowIoT.Services
@@ -17,7 +17,7 @@ namespace GrowIoT.Services
     {
         private ConfigDto _currentConfig;
         private GpioController _gpioController;
-        private IList<IoTBaseModule> _modules;
+        private IList<IoTComponent> _modules;
 
         public async Task<ConfigDto> LoadConfig()
         {
@@ -64,18 +64,18 @@ namespace GrowIoT.Services
             if (_currentConfig?.Modules == null)
                 return;
 
-            _modules = new List<IoTBaseModule>();
+            _modules = new List<IoTComponent>();
 
             foreach (var module in _currentConfig.Modules)
             {
-                IoTBaseModule mod = null;
+                IoTComponent mod = null;
                 if (module.Type == ModuleType.HumidityAndTemperature)
                 {
-                    mod = new DhtSensor(module.Name, module.Pin.GetValueOrDefault(), module.Rules);
+                   // mod = new DhtSensor(module.Pin.GetValueOrDefault(), module.Rules);
                 }
 
-                if (_gpioController != null)
-                    mod?.Init(_gpioController);
+                //if (_gpioController != null)
+                   // mod?.Init(_gpioController);
 
                 _modules.Add(mod);
             }
@@ -86,7 +86,7 @@ namespace GrowIoT.Services
             return _currentConfig;
         }
 
-        public IList<IoTBaseModule> GetModules()
+        public IList<IoTComponent> GetModules()
         {
             return _modules;
         }

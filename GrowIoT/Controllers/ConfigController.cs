@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using FourTwenty.IoT.Connect.Dto;
+using FourTwenty.IoT.Server.Interfaces;
 using GrowIoT.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -63,21 +64,18 @@ namespace GrowIoT.Controllers
             try
             {
                 var currentConfigVersion = await _ioTConfigService.UpdateConfig(model);
-                if (currentConfigVersion > 0)
-                {
-                    await _jobsService.StopJobs();
+                if (currentConfigVersion <= 0) return NoContent();
 
-                    var loadedConfig = await _ioTConfigService.LoadConfig();
-                    _ioTConfigService.InitConfig(null, loadedConfig);
-                    var currentModules = _ioTConfigService.GetModules();
+                await _jobsService.StopJobs();
 
-                    await _jobsService.Init();
-                    await _jobsService.StartJobs(currentModules);
+                var loadedConfig = await _ioTConfigService.LoadConfig();
+                _ioTConfigService.InitConfig(null, loadedConfig);
+                var currentModules = _ioTConfigService.GetModules();
+                
+                await _jobsService.StartJobs(currentModules);
 
-                    return new JsonResult(currentConfigVersion);
-                }
+                return new JsonResult(currentConfigVersion);
 
-                return NoContent();
             }
             catch (Exception e)
             {

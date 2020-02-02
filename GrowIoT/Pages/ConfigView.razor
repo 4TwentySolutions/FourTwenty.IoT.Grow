@@ -1,0 +1,72 @@
+﻿@page "/config"
+@using FourTwenty.IoT.Connect.Dto
+@using GrowIoT.Interfaces
+@inject IIoTConfigService IoTConfigService
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h3>ConfigView</h3>
+            @if (Config == null)
+            {
+            <h4>No config available</h4>
+
+            }
+        </div>
+    </div>
+    @if (Config != null)
+    {
+    <div class="row">
+        <div class="col">
+            Port: @Config.ListeningPort<br />
+            Version: @Config.CurrentVersion<br />
+        </div>
+    </div>
+    @if (Config.Modules != null && Config.Modules.Any())
+    {
+        <div class="row">
+            @foreach (var module in Config.Modules)
+            {
+                <div class="col-6 col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">@module.Name</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">@module.Type</h6>
+                            @if (module.Rules != null && module.Rules.Any())
+                            {
+                                <ul class="list-unstyled">
+                                    @foreach (var rule in module.Rules)
+                                    {
+                                        <li class="media my-2">
+                                            <div class="media-body">
+                                                <h5 class="mt-0 mb-1">@rule.Type</h5>
+                                                <span class="text-monospace text-muted">@rule.CronExpression</span>
+                                            </div>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            <button class="btn btn-outline-danger">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    }
+
+</div>
+
+
+
+@code {
+
+    public ConfigDto Config { get; private set; }
+
+    protected override void OnInitialized()
+    {
+        Config = IoTConfigService.GetConfig();
+        base.OnInitialized();
+    }
+
+}

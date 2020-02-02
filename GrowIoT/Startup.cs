@@ -2,12 +2,14 @@ using System;
 using System.Device.Gpio;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
+using FourTwenty.IoT.Server.Hubs;
+using FourTwenty.IoT.Server.Interfaces;
+using FourTwenty.IoT.Server.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using GrowIoT.Hubs;
 using GrowIoT.Interfaces;
 using GrowIoT.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -35,7 +37,7 @@ namespace GrowIoT
             services.AddServerSideBlazor();
             services.AddSignalR();
 
-            services.AddScoped<IIoTConfigService, IoTConfigService>();
+            services.AddSingleton<IIoTConfigService, IoTConfigService>();
             services.AddSingleton<IJobsService, JobsService>();
             services.AddSingleton<IHubService, HubService>();
 
@@ -81,7 +83,7 @@ namespace GrowIoT
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapBlazorHub();
-                endpoints.MapHub<CommandsHub>("/commandsHub");
+                endpoints.MapHub<RealTimeDataHub>("/commandsHub");
                 endpoints.MapFallbackToPage("/_Host");
             });
 
@@ -92,22 +94,20 @@ namespace GrowIoT
         {
             try
             {
-                var configService = (IIoTConfigService)serviceProvider.GetService(typeof(IIoTConfigService));
-                var jobsService = (IJobsService)serviceProvider.GetService(typeof(IJobsService));
-
+                
+                var configService = serviceProvider.GetService<IIoTConfigService>();
+                var jobsService = serviceProvider.GetService<IJobsService>();
                 var config = await configService.LoadConfig();
 
 #if DebugLocalWin
 
                 configService.InitConfig(null, config);
 
-                await jobsService.Init();
                 await jobsService.StartJobs(configService.GetModules());
 
 #else
                 using GpioController controller = new GpioController(PinNumberingScheme.Logical);
                 configService.InitConfig(controller, config);
-
                 await jobsService.Init();
                 await jobsService.StartJobs(configService.GetModules());
 #endif

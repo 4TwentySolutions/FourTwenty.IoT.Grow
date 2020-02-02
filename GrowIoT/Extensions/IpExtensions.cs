@@ -7,7 +7,7 @@ namespace GrowIoT.Extensions
 {
     public static class IpExtensions
     {
-        public static string    GetCurrentIp()
+        public static string GetCurrentIp()
         {
             var proc = new Process
             {
@@ -28,7 +28,7 @@ namespace GrowIoT.Extensions
                 lines.Add(proc.StandardOutput.ReadLine()); //this contains the ip output      
             }
 
-            return lines.Any() ? lines.FirstOrDefault().Replace(" ","") : null;
+            return lines.Any() ? lines.FirstOrDefault()?.Replace(" ", "") : null;
         }
     }
 }

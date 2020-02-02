@@ -1,15 +1,15 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="sidebar">
-    <NavMenu />
-</div>
-
-<div class="main">
-    <div class="top-row px-4">
-        <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-    </div>
-
-    <div class="content px-4">
-        @Body
+<header class="navbar navbar-expand navbar-dark flex-column flex-md-row bg-dark">
+    <a class="navbar-brand" href="/">GrowBox</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</header>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            @Body
+        </div>
     </div>
 </div>
