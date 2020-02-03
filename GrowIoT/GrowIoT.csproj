@@ -12,20 +12,22 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FourTwenty.IoT.Connect" Version="1.0.1-pre.2" />
-    <PackageReference Include="FourTwenty.IoT.Server" Version="1.0.1-pre.2" />
+    <PackageReference Include="AutoMapper" Version="9.0.0" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="7.0.0" />
+    <PackageReference Include="FourTwenty.Core.Data" Version="1.0.9" />
+    <PackageReference Include="FourTwenty.IoT.Connect" Version="1.0.1-pre.5" />
+    <PackageReference Include="FourTwenty.IoT.Server" Version="1.0.1-pre.5" />
     <PackageReference Include="Iot.Device.Bindings" Version="1.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.1" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.1" />
     <PackageReference Include="Quartz" Version="3.0.7" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlcipher" Version="2.0.2" />
     <PackageReference Include="System.Device.Gpio" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Data\" />
-    <Folder Include="Hubs\" />
-    <Folder Include="Models\" />
-    <Folder Include="Modules\" />
+    <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

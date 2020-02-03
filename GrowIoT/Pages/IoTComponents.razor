@@ -1,0 +1,63 @@
+﻿@page "/iotcomponents"
+@using FourTwenty.Core.Data.Interfaces
+@using FourTwenty.IoT.Connect.Entities
+@inject IAsyncRepository<GrowBoxModule, int> ModulesRepo
+<div class="container mt-5">
+    <div class="row align-content-center">
+        <div class="col">
+            <h3>IoT Components</h3>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" @onclick="AddComponent">Add component</button>
+        </div>
+    </div>
+    <div class="row">
+        @if (Modules == null || !Modules.Any())
+        {
+            <div class="col">
+                <h4>No data</h4>
+            </div>
+        }
+        else
+        {
+            foreach (var module in Modules)
+            {
+                <div class="col-12 col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">@module.Name</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">@module.Type</h6>
+                            <p class="card-text"><b>Pins:</b>@string.Join(",", module.Pins).</p>
+                            <button class="btn btn-info" @onclick="RulesClicked(module)">Rules</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+
+@code {
+
+    public IReadOnlyList<GrowBoxModule> Modules { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Modules = await ModulesRepo.ListAllAsync();
+        await base.OnInitializedAsync();
+    }
+
+    EventCallback RulesClicked(GrowBoxModule module)
+    {
+
+        return EventCallback.Empty;
+    }
+
+
+    void AddComponent()
+    {
+
+    }
+
+}

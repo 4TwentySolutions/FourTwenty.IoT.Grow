@@ -1,7 +1,13 @@
 ﻿@page "/config"
+@using AutoMapper
+@using FourTwenty.Core.Data.Interfaces
 @using FourTwenty.IoT.Connect.Dto
+@using FourTwenty.IoT.Connect.Entities
 @using GrowIoT.Interfaces
+@using GrowIoT.ViewModels
 @inject IIoTConfigService IoTConfigService
+@inject IAsyncRepository<GrowBox, int> GrowRepo
+@inject IMapper Mapper
 
 <div class="container">
     <div class="row">
@@ -9,64 +15,110 @@
             <h3>ConfigView</h3>
             @if (Config == null)
             {
-            <h4>No config available</h4>
+                <h4>No config available</h4>
 
             }
         </div>
     </div>
     @if (Config != null)
     {
-    <div class="row">
-        <div class="col">
-            Port: @Config.ListeningPort<br />
-            Version: @Config.CurrentVersion<br />
-        </div>
-    </div>
-    @if (Config.Modules != null && Config.Modules.Any())
-    {
         <div class="row">
-            @foreach (var module in Config.Modules)
+            <div class="col">
+                Port: @Config.ListeningPort<br />
+                Version: @Config.CurrentVersion<br />
+            </div>
+        </div>
+
+    }
+    <div class="row mt-3">
+        <div class="col-12 col-md-6">
+            <EditForm Model="@Box" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <div class="form-group">
+                    <label for="Title">Title</label>
+                    <InputText id="Title" @bind-Value="Box.Title" aria-describedby="titlehelp" class="form-control" />
+                    <ValidationMessage For="@(()=>Box.Title)" class="text-danger" />
+                    <small id="titlehelp" class="form-text text-muted">Enter growbox title.</small>
+                </div>
+                <div class="form-group">
+                    <label for="Description">Description</label>
+                    <InputTextArea id="Description" @bind-Value="Box.Description" aria-describedby="descriptionHelp" class="form-control" />
+                    <ValidationMessage For="@(()=>Box.Description)" class="text-danger"></ValidationMessage>
+                    <small id="descriptionHelp" class="form-text text-muted">Enter growbox description.</small>
+                </div>
+                <div class="form-group">
+                    <label for="Address">Address</label>
+                    <InputText id="Address" @bind-Value="Box.Address" aria-describedby="Addresshelp" class="form-control" />
+                    <ValidationMessage For="@(()=>Box.Address)" class="text-danger" />
+                    <small id="Addresshelp" class="form-text text-muted">Enter IP address.</small>
+                </div>
+                <div class="form-group">
+                    <label for="Port">Port</label>
+                    <InputText id="Port" @bind-Value="Box.PortStr" type="number" aria-describedby="Porthelp" class="form-control" />
+                    <ValidationMessage For="@(()=>Box.PortStr)" class="text-danger" />
+                    <small id="Porthelp" class="form-text text-muted">Enter port.</small>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+
+
+
+            </EditForm>
+            @if (IsLoading)
             {
-                <div class="col-6 col-md-3">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">@module.Name</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">@module.Type</h6>
-                            @if (module.Rules != null && module.Rules.Any())
-                            {
-                                <ul class="list-unstyled">
-                                    @foreach (var rule in module.Rules)
-                                    {
-                                        <li class="media my-2">
-                                            <div class="media-body">
-                                                <h5 class="mt-0 mb-1">@rule.Type</h5>
-                                                <span class="text-monospace text-muted">@rule.CronExpression</span>
-                                            </div>
-                                        </li>
-                                    }
-                                </ul>
-                            }
-                            <button class="btn btn-outline-danger">Delete</button>
+                <div class="row">
+                    <div class="col text-center">
+                        <div class="spinner-border text-dark" role="status">
+                            <span class="sr-only">Loading...</span>
                         </div>
                     </div>
                 </div>
             }
         </div>
-    }
-    }
-
+    </div>
 </div>
 
 
 
 @code {
+    [Parameter]
+    public ConfigDto Config { get; set; }
+    [Parameter]
+    public GrowBoxViewModel Box { get; set; } = new GrowBoxViewModel();
+    [Parameter]
+    public bool IsLoading { get; set; }
 
-    public ConfigDto Config { get; private set; }
-
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         Config = IoTConfigService.GetConfig();
-        base.OnInitialized();
+        var box = await GrowRepo.GetByIdAsync(1);
+        if (box != null)
+        {
+            Box = Mapper.Map<GrowBoxViewModel>(box);
+        }
+        await base.OnInitializedAsync();
+    }
+
+
+    private async void HandleValidSubmit()
+    {
+        try
+        {
+            IsLoading = true;
+
+            if (await GrowRepo.CountAsync() > 0)
+            {
+                await GrowRepo.UpdateAsync(Mapper.Map<GrowBox>(Box));
+            }
+            else
+            {
+                Box = Mapper.Map<GrowBoxViewModel>(await GrowRepo.AddAsync(Mapper.Map<GrowBox>(Box)));
+            }
+            Console.WriteLine("OnValidSubmit");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
 }
