@@ -5,8 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FourTwenty.Core.Data" Version="1.0.9" />
-    <PackageReference Include="FourTwenty.IoT.Connect" Version="1.0.1-pre.5" />
+    <PackageReference Include="FourTwenty.Core.Data" Version="1.0.10" />
+    <PackageReference Include="FourTwenty.IoT.Connect" Version="1.0.1-pre.8" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="3.1.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.1">

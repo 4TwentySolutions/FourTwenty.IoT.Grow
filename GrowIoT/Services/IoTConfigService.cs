@@ -6,9 +6,12 @@ using System.Text;
 using System.Threading.Tasks;
 using FourTwenty.IoT.Connect.Constants;
 using FourTwenty.IoT.Connect.Dto;
+using FourTwenty.IoT.Connect.Interfaces;
 using FourTwenty.IoT.Server.Components;
 using FourTwenty.IoT.Server.Components.Sensors;
+using FourTwenty.IoT.Server.Rules;
 using GrowIoT.Interfaces;
+using GrowIoT.ViewModels;
 using Newtonsoft.Json;
 
 namespace GrowIoT.Services
@@ -16,7 +19,7 @@ namespace GrowIoT.Services
     public class IoTConfigService : IIoTConfigService
     {
         private ConfigDto _currentConfig;
-        private GpioController _gpioController;
+        // private GpioController _gpioController;
         private IList<IoTComponent> _modules;
 
         public async Task<ConfigDto> LoadConfig()
@@ -49,18 +52,8 @@ namespace GrowIoT.Services
             return _currentConfig = config;
         }
 
-        public void InitConfig(GpioController controller = null, ConfigDto config = null)
+        public void InitConfig(GpioController controller = null, GrowBoxViewModel config = null)
         {
-            if (controller != null)
-            {
-                _gpioController = controller;
-            }
-
-            if (config != null)
-            {
-                _currentConfig = config;
-            }
-
             if (_currentConfig?.Modules == null)
                 return;
 
@@ -69,13 +62,20 @@ namespace GrowIoT.Services
             foreach (var module in _currentConfig.Modules)
             {
                 IoTComponent mod = null;
+                var rules = new List<IRule>();
+                foreach (var moduleRuleDto in module.Rules)
+                {
+                    var cronRule = new CronRule(moduleRuleDto.Type, moduleRuleDto.CronExpression)
+                    {
+                        Period = TimeSpan.FromSeconds(moduleRuleDto.Period)
+                    };
+
+                    rules.Add(cronRule);
+                }
                 if (module.Type == ModuleType.HumidityAndTemperature)
                 {
-                   // mod = new DhtSensor(module.Pin.GetValueOrDefault(), module.Rules);
+                    mod = new DhtSensor(module.Pin.GetValueOrDefault(), controller, rules);
                 }
-
-                //if (_gpioController != null)
-                   // mod?.Init(_gpioController);
 
                 _modules.Add(mod);
             }

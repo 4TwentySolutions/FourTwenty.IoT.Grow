@@ -13,6 +13,7 @@ namespace GrowIoT.Interfaces
         #region management
 
         Task<GrowBoxViewModel> GetBox();
+        Task<GrowBoxViewModel> GetBoxWithRules();
         Task SaveBox(GrowBoxViewModel box);
 
         Task<IReadOnlyList<ModuleVm>> GetModules();

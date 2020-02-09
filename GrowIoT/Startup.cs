@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Device.Gpio;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
@@ -62,7 +62,7 @@ namespace GrowIoT
             services.AddScoped(typeof(ITrackedEfRepository<>), typeof(DataRepository<>));
             services.AddScoped(typeof(ITrackedEfRepository<,>), typeof(DataRepository<,>));
 
-            
+
             services.AddBlazoredToast();
             services.AddScoped<IGrowboxManager, GrowboxManager>();
             services.AddLocalization(opts => opts.ResourcesPath = "Resources");
@@ -114,7 +114,7 @@ namespace GrowIoT
                 endpoints.MapFallbackToPage("/_Host");
             });
             await serviceProvider.GetService<GrowDbContext>().InitDb();
-            // await InitIoT(serviceProvider);
+            await InitIoT(serviceProvider);
         }
 
         private static async Task InitIoT(IServiceProvider serviceProvider)
@@ -126,18 +126,25 @@ namespace GrowIoT
                 var jobsService = serviceProvider.GetService<IJobsService>();
                 var config = await configService.LoadConfig();
 
-#if DebugLocalWin
+                var growBoxManager = serviceProvider.GetService<IGrowboxManager>();
 
-                configService.InitConfig(null, config);
-
-                await jobsService.StartJobs(configService.GetModules());
-
-#else
+                var growBox = await growBoxManager.GetBoxWithRules();
+                //var modules = await growBoxManager.GetModules();
                 using GpioController controller = new GpioController(PinNumberingScheme.Logical);
-                configService.InitConfig(controller, config);
-                await jobsService.Init();
+                configService.InitConfig(controller, growBox);
                 await jobsService.StartJobs(configService.GetModules());
-#endif
+                //#if DebugLocalWin
+
+                //                configService.InitConfig(null, growBox);
+                //                await jobsService.StartJobs(configService.GetModules());
+
+                //#else
+                //                using GpioController controller = new GpioController(PinNumberingScheme.Logical);
+                //                configService.InitConfig(controller, growBox);
+                //                await jobsService.StartJobs(configService.GetModules());
+                //#endif
+
+
             }
             catch (Exception e)
             {

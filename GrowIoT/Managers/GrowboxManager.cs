@@ -40,6 +40,12 @@ namespace GrowIoT.Managers
             return _mapper.Map(_box, new GrowBoxViewModel());
         }
 
+        public async Task<GrowBoxViewModel> GetBoxWithRules()
+        {
+            _box = await _growBoxRepo.GetSingleBySpecAsync(new GrowBoxWithModulesSpecification());
+            return _mapper.Map(_box, new GrowBoxViewModel());
+        }
+
         public async Task SaveBox(GrowBoxViewModel box)
         {
             _mapper.Map(box, _box);
@@ -47,7 +53,7 @@ namespace GrowIoT.Managers
         }
 
 
-        private GrowBoxModule _module;
+        private GrowBoxModule _module = new GrowBoxModule();
         public async Task<ModuleVm> GetModule(int id)
         {
             _module = await _modulesRepo.GetSingleBySpecAsync(

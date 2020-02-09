@@ -69,7 +69,7 @@ namespace GrowIoT.Controllers
                 await _jobsService.StopJobs();
 
                 var loadedConfig = await _ioTConfigService.LoadConfig();
-                _ioTConfigService.InitConfig(null, loadedConfig);
+                //_ioTConfigService.InitConfig(null, loadedConfig);
                 var currentModules = _ioTConfigService.GetModules();
                 
                 await _jobsService.StartJobs(currentModules);
