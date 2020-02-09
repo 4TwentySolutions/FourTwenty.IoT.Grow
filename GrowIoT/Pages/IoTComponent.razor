@@ -1,23 +1,32 @@
 ﻿@page "/iotcomponents/create"
 @page "/iotcomponents/{Id:int}"
-@using FourTwenty.Core.Data.Interfaces
 @using FourTwenty.IoT.Connect.Constants
-@using FourTwenty.IoT.Connect.Entities
-@using FourTwenty.IoT.Connect.Models
-@using Microsoft.CodeAnalysis.Operations
-@using Microsoft.Extensions.Localization
-@using Newtonsoft.Json
-@inject IAsyncRepository<GrowBoxModule, int> ModulesRepo
-@inject IStringLocalizer<AppResources> Localizer
-@inject IToastService ToastService
+@inherits IoTComponentBase
+
+<style>
+    .tooltip-inner {
+        max-width: 100% !important;
+    }
+</style>
 <div class="container mt-5">
+    <div class="row">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><NavLink href="/">@Localizer["Home"]</NavLink></li>
+                    <li class="breadcrumb-item"><NavLink href="/iotcomponents">@Localizer["Components"]</NavLink></li>
+                    <li class="breadcrumb-item active" aria-current="page">@(Id.HasValue ? $"Edit component {Module.Name}" : "Create component")</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
     <div class="row">
         <div class="col">
             <h3>@(Id.HasValue ? $"Edit component {Module.Name}" : "Create component")</h3>
         </div>
     </div>
-    <div class="row justify-content-center">
-        <div class="col-8">
+    <div class="row justify-content-center mb-4">
+        <div class="col-12 col-md-8">
             <div class="card">
                 <EditForm Model="@Module" OnValidSubmit="OnSubmit">
                     <div class="card-body">
@@ -41,8 +50,10 @@
                         </div>
                         <div class="form-group">
                             <label for="pinCount">@Localizer["PIN's count"]</label>
-                            <input type="number" min="1" class="form-control" id="pinCount" aria-describedby="pinCountHelp" @onchange="OnChanged" />
-                            <small id="pinCountHelp" class="form-text text-muted">@Localizer["Count of PIN's used in Raspberry"]</small>
+                            <input type="number" min="1" class="form-control" id="pinCount" aria-describedby="pinCountHelp" @onchange="OnChanged" value="@Module.Pins.Length" />
+                            <small id="pinCountHelp" class="form-text text-muted">@Localizer["Count of PIN's used in Raspberry"] <i class="fa fa-info-circle" id="tooltip5"></i></small>
+
+                            <BSTooltip Target="tooltip5" Placement="Placement.Top"><img src="/images/raspberry_gpios.jpg" class="img-fluid w-100" /></BSTooltip>
                         </div>
                         <div class="row pin-container">
                             @if (Module.Pins != null)
@@ -51,8 +62,8 @@
                                 {
                                     var local = i;
                                     <div class="col-6 col-md-3 mt-3">
-                                        <label>PIN #@local</label>
-                                        <input type="number" class="form-control" placeholder="PIN number" @onchange="@(e=>PinInputChanged(e,local))" />
+                                        <label>GPIO #@local</label>
+                                        <input type="number" class="form-control" min="2" max="27" placeholder="PIN number" @onchange="@(e=>PinInputChanged(e,local))" value="@Module.Pins[local]" />
                                     </div>
                                 }
                             }
@@ -75,10 +86,17 @@
                                                     @switch (rule.RuleType)
                                                     {
                                                         case RuleType.CronRule:
-                                                            <button class="list-group-item list-group-item-action" type="button" @onclick="@((e)=>OnRuleClicked(rule))">
-                                                                @Localizer["Cron rule"] <small class="text-muted">@rule.Job</small>
-                                                            </button>
-                                                            @*<button class="btn text-danger float-right" @onclick="@((e)=>RemoveRule(rule))"><i class="fas fa-minus-circle"></i></button>*@
+
+                                                            <div class="list-group-item list-group-item-action">
+                                                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                                                    <span>@Localizer["Cron rule"] <small class="text-muted">@rule.Job</small></span>
+                                                                    <div>
+                                                                        <button class="btn text-info" @onclick="@((e)=>OnRuleClicked(rule))" type="button"><i class="fas fa-edit"></i></button>
+                                                                        <button class="btn text-danger" @onclick="@((e)=>RemoveRule(rule))" type="button"><i class="fas fa-minus-circle"></i></button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
                                                             break;
                                                         default:
                                                             throw new ArgumentOutOfRangeException();
@@ -99,20 +117,25 @@
 
                     </div>
                     <div class="card-footer">
-                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <div class="d-flex justify-content-between">
+                            <NavLink href="iotcomponents" class="btn btn-secondary">Cancel</NavLink>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </div>
+
                     </div>
                 </EditForm>
             </div>
         </div>
     </div>
 </div>
+
 <BSModal @ref="RuleModal">
     <EditForm Model="CurrentRule" OnValidSubmit="OnSubmitRule">
         <DataAnnotationsValidator />
         <BSModalHeader OnClick="@(() => RuleModal.Hide())">Rule</BSModalHeader>
         <BSModalBody>
             <div class="form-group">
-                <label for="radioRuleType">@Localizer["Select rule type"]</label>
+                <label for="radioRuleType" class="w-100">@Localizer["Select rule type"]</label><br />
                 @foreach (var ruleType in Enum.GetNames(typeof(RuleType)))
                 {
                     <div class="custom-control custom-radio custom-control-inline">
@@ -160,101 +183,3 @@
         </BSModalFooter>
     </EditForm>
 </BSModal>
-
-@code {
-    BSModal RuleModal;
-    [Parameter]
-    public int? Id { get; set; }
-
-    public GrowBoxModule Module { get; set; } = new GrowBoxModule();
-
-    public ModuleRule CurrentRule { get; private set; } = new ModuleRule();
-
-    #region rules
-
-    public CronRule CronRule { get; private set; } = new CronRule();
-
-    #endregion
-
-    protected override async Task OnInitializedAsync()
-    {
-        if (Id.HasValue)
-        {
-            Module = await ModulesRepo.GetByIdAsync(Id.Value);
-        }
-        await base.OnInitializedAsync();
-    }
-
-
-    private void OnChanged(ChangeEventArgs change)
-    {
-        if (!(change.Value is string val && int.TryParse(val, out int length))) return;
-        if (Module.Pins == null)
-        {
-            Module.Pins = new int[length];
-        }
-        else
-        {
-            var pins = Module.Pins;
-            if (length == pins.Length) return;
-            Array.Resize(ref pins, length);
-            Module.Pins = pins;
-        }
-    }
-
-    private void PinInputChanged(ChangeEventArgs change, int index)
-    {
-        if (change.Value is string str && int.TryParse(str, out int val))
-            Module.Pins[index] = val;
-    }
-
-    private void AddRuleClicked()
-    {
-        CurrentRule = new ModuleRule();
-        CronRule = new CronRule();
-        RuleModal.Show();
-    }
-
-    private void OnRuleClicked(ModuleRule rule)
-    {
-        CurrentRule = rule;
-        switch (CurrentRule.RuleType)
-        {
-            case RuleType.CronRule:
-                CronRule = JsonConvert.DeserializeObject<CronRule>(CurrentRule.RuleContent) ?? new CronRule();
-                break;
-
-        }
-        RuleModal.Show();
-    }
-
-
-    private void OnSubmitRule()
-    {
-        RuleModal.Hide();
-        switch (CurrentRule.RuleType)
-        {
-            case RuleType.CronRule:
-                CurrentRule.RuleContent = JsonConvert.SerializeObject(CronRule);
-                CurrentRule.GrowBoxModuleId = Module.Id;
-                if (CurrentRule.Id == 0)
-                {
-                    if (Module.Rules == null)
-                        Module.Rules = new List<ModuleRule>();
-                    Module.Rules?.Add(CurrentRule);
-                }
-                break;
-        }
-        ToastService.ShowSuccess("Rule added");
-    }
-
-    private void OnSubmit()
-    {
-        ToastService.ShowSuccess("Growbox successfully saved", "Congratulations!");
-    }
-
-    private void RemoveRule(ModuleRule rule)
-    {
-
-    }
-}

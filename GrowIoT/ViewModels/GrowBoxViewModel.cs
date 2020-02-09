@@ -1,5 +1,4 @@
-﻿using System;
-using FourTwenty.IoT.Connect.Entities;
+﻿using FourTwenty.IoT.Connect.Entities;
 
 namespace GrowIoT.ViewModels
 {

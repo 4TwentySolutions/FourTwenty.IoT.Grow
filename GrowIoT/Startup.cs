@@ -18,6 +18,7 @@ using GrowIoT.Interfaces;
 using GrowIoT.Managers;
 using GrowIoT.Services;
 using Infrastructure.Data;
+using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
@@ -58,6 +59,8 @@ namespace GrowIoT
             services.AddScoped(typeof(IAsyncRepository<,>), typeof(DataRepository<,>));
             services.AddScoped(typeof(IRepository<>), typeof(DataRepository<>));
             services.AddScoped(typeof(IAsyncRepository<>), typeof(DataRepository<>));
+            services.AddScoped(typeof(ITrackedEfRepository<>), typeof(DataRepository<>));
+            services.AddScoped(typeof(ITrackedEfRepository<,>), typeof(DataRepository<,>));
 
             
             services.AddBlazoredToast();
