@@ -1,0 +1,260 @@
+﻿@page "/iotcomponents/create"
+@page "/iotcomponents/{Id:int}"
+@using FourTwenty.Core.Data.Interfaces
+@using FourTwenty.IoT.Connect.Constants
+@using FourTwenty.IoT.Connect.Entities
+@using FourTwenty.IoT.Connect.Models
+@using Microsoft.CodeAnalysis.Operations
+@using Microsoft.Extensions.Localization
+@using Newtonsoft.Json
+@inject IAsyncRepository<GrowBoxModule, int> ModulesRepo
+@inject IStringLocalizer<AppResources> Localizer
+@inject IToastService ToastService
+<div class="container mt-5">
+    <div class="row">
+        <div class="col">
+            <h3>@(Id.HasValue ? $"Edit component {Module.Name}" : "Create component")</h3>
+        </div>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-8">
+            <div class="card">
+                <EditForm Model="@Module" OnValidSubmit="OnSubmit">
+                    <div class="card-body">
+                        <DataAnnotationsValidator />
+                        <div class="form-group">
+                            <label for="moduleName">@Localizer["Module name"]</label>
+                            <InputText type="text" @bind-Value="Module.Name" class="form-control" id="moduleName" aria-describedby="moduleNameHelp" />
+                            <ValidationMessage For="@(()=>Module.Name)" class="text-danger"></ValidationMessage>
+                            <small id="moduleNameHelp" class="form-text text-muted">@Localizer["Something that describes this component"]</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="moduleType">@Localizer["Select module type"]</label>
+                            <select class="form-control" id="moduleType" @bind="Module.Type" aria-describedby="moduleTypeHelp">
+                                @foreach (var type in Enum.GetNames(typeof(ModuleType)))
+                                {
+                                    <option value="@type">@type</option>
+                                }
+                            </select>
+                            <ValidationMessage For="@(()=>Module.Name)" class="text-danger"></ValidationMessage>
+                            <small id="moduleTypeHelp" class="form-text text-muted">@Localizer["Select type of module that you adding"]</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="pinCount">@Localizer["PIN's count"]</label>
+                            <input type="number" min="1" class="form-control" id="pinCount" aria-describedby="pinCountHelp" @onchange="OnChanged" />
+                            <small id="pinCountHelp" class="form-text text-muted">@Localizer["Count of PIN's used in Raspberry"]</small>
+                        </div>
+                        <div class="row pin-container">
+                            @if (Module.Pins != null)
+                            {
+                                for (var i = 0; i < Module.Pins.Length; i++)
+                                {
+                                    var local = i;
+                                    <div class="col-6 col-md-3 mt-3">
+                                        <label>PIN #@local</label>
+                                        <input type="number" class="form-control" placeholder="PIN number" @onchange="@(e=>PinInputChanged(e,local))" />
+                                    </div>
+                                }
+                            }
+                        </div>
+                        <div class="row mt-5 align-items-center">
+                            <div class="col-8">
+                                <h4>@Localizer["Rules"]</h4>
+                            </div>
+                            <div class="col">
+                                <button class="btn btn-warning float-right" type="button" @onclick="AddRuleClicked">@Localizer["Add rule"]</button>
+                            </div>
+                            <div class="col-12 mt-4">
+                                <div class="card">
+                                    <div class="card-body">
+                                        @if (Module.Rules != null && Module.Rules.Any())
+                                        {
+                                            <div class="list-group">
+                                                @foreach (var rule in Module.Rules)
+                                                {
+                                                    @switch (rule.RuleType)
+                                                    {
+                                                        case RuleType.CronRule:
+                                                            <button class="list-group-item list-group-item-action" type="button" @onclick="@((e)=>OnRuleClicked(rule))">
+                                                                @Localizer["Cron rule"] <small class="text-muted">@rule.Job</small>
+                                                            </button>
+                                                            @*<button class="btn text-danger float-right" @onclick="@((e)=>RemoveRule(rule))"><i class="fas fa-minus-circle"></i></button>*@
+                                                            break;
+                                                        default:
+                                                            throw new ArgumentOutOfRangeException();
+                                                    }
+                                                }
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="text-center">
+                                                <span class="h4">@Localizer["No rules created yet"] <i class="fa fa-3x fa-sad-cry"></i></span>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+<BSModal @ref="RuleModal">
+    <EditForm Model="CurrentRule" OnValidSubmit="OnSubmitRule">
+        <DataAnnotationsValidator />
+        <BSModalHeader OnClick="@(() => RuleModal.Hide())">Rule</BSModalHeader>
+        <BSModalBody>
+            <div class="form-group">
+                <label for="radioRuleType">@Localizer["Select rule type"]</label>
+                @foreach (var ruleType in Enum.GetNames(typeof(RuleType)))
+                {
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" id="customRadioInline@(ruleType)" checked="@(CurrentRule.RuleType == Enum.Parse<RuleType>(ruleType))" name="radioRuleType" class="custom-control-input" @onchange="@((e)=>CurrentRule.RuleType = Enum.Parse<RuleType>(ruleType))">
+                        <label class="custom-control-label" for="customRadioInline@(ruleType)">@ruleType</label>
+                    </div>
+                }
+                <small id="ruleTypeHelp" class="form-text text-muted">@Localizer["Rule type. Currently only cron rule available"]</small>
+            </div>
+            @switch (CurrentRule.RuleType)
+            {
+                case RuleType.CronRule:
+                    <div class="form-group">
+                        <label for="jobType" class="w-100">@Localizer["Job type"]</label><br />
+                        <select class="form-control" id="jobType" @bind="CurrentRule.Job" aria-describedby="jobTypeHelp">
+                            @foreach (var type in Enum.GetNames(typeof(JobType)))
+                            {
+                                <option value="@type">@type</option>
+                            }
+                        </select>
+                        <ValidationMessage For="@(()=>CurrentRule.Job)" class="text-danger"></ValidationMessage>
+                        <small id="jobTypeHelp" class="form-text text-muted">@Localizer["Select quartz job to be scheduled"]</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="cronExpression">@Localizer["Cron expression"]</label>
+                        <InputText type="text" class="form-control" @bind-Value="@CronRule.CronExpression" id="cronExpression" aria-describedby="cronExpressionHelp" placeholder="* * * * " />
+                        <ValidationMessage For="@(()=>CronRule.CronExpression)" class="text-danger"></ValidationMessage>
+                        <small id="cronExpressionHelp" class="form-text text-muted">@Localizer["Enter cron expression for job scheduling"] (<NavLink href="https://www.baeldung.com/cron-expressions" target="_blank">Example</NavLink>)</small>
+                    </div>
+                    @if (CurrentRule.Job == JobType.Period)
+                    {
+                        <div class="form-group">
+                            <label for="cronDelay">@Localizer["Delay"]</label>
+                            <InputNumber type="number" class="form-control" @bind-Value="@CronRule.Delay" id="cronDelay" aria-describedby="cronDelayHelp" placeholder="" />
+                            <ValidationMessage For="@(() => CronRule.Delay)" class="text-danger"></ValidationMessage>
+                            <small id="cronDelayHelp" class="form-text text-muted">@Localizer["Enter delay for periodic job"]</small>
+                        </div>
+                    }
+                    break;
+            }
+        </BSModalBody>
+        <BSModalFooter>
+            <BSButton Color="Color.Secondary" OnClick="@(() => RuleModal.Hide())">@Localizer["Cancel"]</BSButton>
+            <BSButton Color="Color.Primary" type="submit">@Localizer["Save"]</BSButton>
+        </BSModalFooter>
+    </EditForm>
+</BSModal>
+
+@code {
+    BSModal RuleModal;
+    [Parameter]
+    public int? Id { get; set; }
+
+    public GrowBoxModule Module { get; set; } = new GrowBoxModule();
+
+    public ModuleRule CurrentRule { get; private set; } = new ModuleRule();
+
+    #region rules
+
+    public CronRule CronRule { get; private set; } = new CronRule();
+
+    #endregion
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id.HasValue)
+        {
+            Module = await ModulesRepo.GetByIdAsync(Id.Value);
+        }
+        await base.OnInitializedAsync();
+    }
+
+
+    private void OnChanged(ChangeEventArgs change)
+    {
+        if (!(change.Value is string val && int.TryParse(val, out int length))) return;
+        if (Module.Pins == null)
+        {
+            Module.Pins = new int[length];
+        }
+        else
+        {
+            var pins = Module.Pins;
+            if (length == pins.Length) return;
+            Array.Resize(ref pins, length);
+            Module.Pins = pins;
+        }
+    }
+
+    private void PinInputChanged(ChangeEventArgs change, int index)
+    {
+        if (change.Value is string str && int.TryParse(str, out int val))
+            Module.Pins[index] = val;
+    }
+
+    private void AddRuleClicked()
+    {
+        CurrentRule = new ModuleRule();
+        CronRule = new CronRule();
+        RuleModal.Show();
+    }
+
+    private void OnRuleClicked(ModuleRule rule)
+    {
+        CurrentRule = rule;
+        switch (CurrentRule.RuleType)
+        {
+            case RuleType.CronRule:
+                CronRule = JsonConvert.DeserializeObject<CronRule>(CurrentRule.RuleContent) ?? new CronRule();
+                break;
+
+        }
+        RuleModal.Show();
+    }
+
+
+    private void OnSubmitRule()
+    {
+        RuleModal.Hide();
+        switch (CurrentRule.RuleType)
+        {
+            case RuleType.CronRule:
+                CurrentRule.RuleContent = JsonConvert.SerializeObject(CronRule);
+                CurrentRule.GrowBoxModuleId = Module.Id;
+                if (CurrentRule.Id == 0)
+                {
+                    if (Module.Rules == null)
+                        Module.Rules = new List<ModuleRule>();
+                    Module.Rules?.Add(CurrentRule);
+                }
+                break;
+        }
+        ToastService.ShowSuccess("Rule added");
+    }
+
+    private void OnSubmit()
+    {
+        ToastService.ShowSuccess("Growbox successfully saved", "Congratulations!");
+    }
+
+    private void RemoveRule(ModuleRule rule)
+    {
+
+    }
+}

@@ -8,6 +8,7 @@
 @inject IIoTConfigService IoTConfigService
 @inject IAsyncRepository<GrowBox, int> GrowRepo
 @inject IMapper Mapper
+@inject IToastService ToastService
 
 <div class="container">
     <div class="row">
@@ -114,6 +115,7 @@
                 Box = Mapper.Map<GrowBoxViewModel>(await GrowRepo.AddAsync(Mapper.Map<GrowBox>(Box)));
             }
             Console.WriteLine("OnValidSubmit");
+            ToastService.ShowSuccess("Growbox successfully saved", "Congratulations!");
         }
         finally
         {

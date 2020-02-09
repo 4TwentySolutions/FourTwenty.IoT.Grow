@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.29519.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GrowIoT", "GrowIoT\GrowIoT.csproj", "{F617A8E7-DF3C-48AC-B36F-8E8F7451F7D5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{0F8A5B66-31EA-4509-B9E3-E5454BAC5164}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{0F8A5B66-31EA-4509-B9E3-E5454BAC5164}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
