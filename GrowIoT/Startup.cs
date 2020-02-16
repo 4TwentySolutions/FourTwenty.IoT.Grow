@@ -130,8 +130,8 @@ namespace GrowIoT
 
                 var growBox = await growBoxManager.GetBoxWithRules();
                 //var modules = await growBoxManager.GetModules();
-                using GpioController controller = new GpioController(PinNumberingScheme.Logical);
-                configService.InitConfig(controller, growBox);
+                //using GpioController controller = new GpioController(PinNumberingScheme.Logical);
+                configService.InitConfig(null, growBox);
                 await jobsService.StartJobs(configService.GetModules());
                 //#if DebugLocalWin
 

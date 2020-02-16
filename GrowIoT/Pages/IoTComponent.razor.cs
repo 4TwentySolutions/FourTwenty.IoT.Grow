@@ -32,7 +32,7 @@ namespace GrowIoT.Pages
         public ModuleVm Module { get; set; } = new ModuleVm() { GrowBoxId = Infrastructure.Constants.BoxId, Pins = new int[0] };
         public ModuleRuleVm CurrentRule { get; set; } = new ModuleRuleVm();
         #region rules
-        public CronRule CronRule { get; set; } = new CronRule();
+        public CronRuleData CronRule { get; set; } = new CronRuleData();
         #endregion
 
 
@@ -90,7 +90,7 @@ namespace GrowIoT.Pages
         protected void AddRuleClicked()
         {
             CurrentRule = new ModuleRuleVm();
-            CronRule = new CronRule();
+            CronRule = new CronRuleData();
             RuleModal.Show();
         }
 
@@ -100,7 +100,7 @@ namespace GrowIoT.Pages
             switch (CurrentRule.RuleType)
             {
                 case RuleType.CronRule:
-                    CronRule = JsonConvert.DeserializeObject<CronRule>(CurrentRule.RuleContent) ?? new CronRule();
+                    CronRule = JsonConvert.DeserializeObject<CronRuleData>(CurrentRule.RuleContent) ?? new CronRuleData();
                     break;
 
             }

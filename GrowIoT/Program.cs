@@ -29,8 +29,8 @@ namespace GrowIoT
 
 
             var hostUrl = configuration["hosturl"];
-            if (string.IsNullOrEmpty(hostUrl))
-                hostUrl = $"http://0.0.0.0:5000";
+            //if (string.IsNullOrEmpty(hostUrl))
+            //    hostUrl = $"http://0.0.0.0:5000";
 
 
             return Host.CreateDefaultBuilder(args)
