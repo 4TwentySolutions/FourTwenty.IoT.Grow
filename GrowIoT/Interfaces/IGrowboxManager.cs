@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using FourTwenty.IoT.Connect.Entities;
 using GrowIoT.ViewModels;
@@ -17,7 +18,7 @@ namespace GrowIoT.Interfaces
         Task SaveBox(GrowBoxViewModel box);
 
         Task<IReadOnlyList<ModuleVm>> GetModules();
-        Task<ModuleVm> GetModule(int id);
+        Task<ModuleVm> GetModule(Guid id);
         Task SaveModule(ModuleVm module);
         Task DeleteModule(ModuleVm module);
         Task DeleteRule(ModuleRule rule); 

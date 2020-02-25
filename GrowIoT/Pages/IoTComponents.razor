@@ -38,6 +38,7 @@
                         <div class="card-body">
                             <h5 class="card-title">@module.Name</h5>
                             <h6 class="card-subtitle mb-2 text-muted">@module.Type</h6>
+                            <p class="card-text"><b>Value:</b>@module.CurrentValue</p>
                             <p class="card-text"><b>Pins:</b>@string.Join(",", module.Pins).</p>
                             <a class="btn btn-info btn-sm" href="/iotcomponents/@(module.Id)">@Localizer["Edit"] <i class="fa fa-edit"></i></a>
                             <button class="btn btn-danger btn-sm" @onclick="@((e)=>Delete(module))">@Localizer["Delete"] <i class="fa fa-trash"></i></button>

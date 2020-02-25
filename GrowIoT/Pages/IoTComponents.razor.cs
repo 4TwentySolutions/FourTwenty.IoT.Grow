@@ -26,6 +26,8 @@ namespace GrowIoT.Pages
         protected override async Task OnInitializedAsync()
         {
             Modules = (await BoxManager.GetModules()).ToList();
+
+            
             await base.OnInitializedAsync();
         }
 

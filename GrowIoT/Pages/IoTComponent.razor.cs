@@ -20,7 +20,7 @@ namespace GrowIoT.Pages
     {
         #region fields
 
-        [Inject] protected IAsyncRepository<GrowBoxModule, int> ModuleRepo { get; private set; }
+        [Inject] protected IAsyncRepository<GrowBoxModule, Guid> ModuleRepo { get; private set; }
         [Inject] protected IStringLocalizer<AppResources> Localizer { get; private set; }
         [Inject] protected IToastService ToastService { get; private set; }
         [Inject] protected NavigationManager NavigationManager { get; private set; }
@@ -28,7 +28,7 @@ namespace GrowIoT.Pages
 
         protected BSModal RuleModal;
         [Parameter]
-        public int? Id { get; set; }
+        public Guid? Id { get; set; }
         public ModuleVm Module { get; set; } = new ModuleVm() { GrowBoxId = Infrastructure.Constants.BoxId, Pins = new int[0] };
         public ModuleRuleVm CurrentRule { get; set; } = new ModuleRuleVm();
         #region rules

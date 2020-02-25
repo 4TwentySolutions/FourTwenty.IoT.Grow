@@ -1,4 +1,5 @@
-﻿using FourTwenty.IoT.Connect.Constants;
+﻿using System;
+using FourTwenty.IoT.Connect.Constants;
 
 namespace GrowIoT.ViewModels
 {
@@ -8,6 +9,6 @@ namespace GrowIoT.ViewModels
         public JobType Job { get; set; }
         public RuleType RuleType { get; set; }
         public string RuleContent { get; set; }
-        public int GrowBoxModuleId { get; set; }
+        public Guid GrowBoxModuleId { get; set; }
     }
 }

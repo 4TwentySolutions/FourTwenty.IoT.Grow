@@ -6,9 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using FourTwenty.IoT.Connect.Constants;
 using FourTwenty.IoT.Connect.Dto;
-using FourTwenty.IoT.Connect.Interfaces;
 using FourTwenty.IoT.Server.Components;
-using FourTwenty.IoT.Server.Components.Sensors;
+using FourTwenty.IoT.Connect.Interfaces;
 using FourTwenty.IoT.Server.Rules;
 using GrowIoT.Interfaces;
 using GrowIoT.Models.Tests;
@@ -73,13 +72,25 @@ namespace GrowIoT.Services
 
                     rules.Add(cronRule);
                 }
+
+
                 if (module.Type == ModuleType.HumidityAndTemperature)
                 {
                     mod = new MockModule(rules, new []{module.Pin.GetValueOrDefault()});//new DhtSensor(module.Pin.GetValueOrDefault(), controller, rules);
                 }
 
+                if (mod is ISensor sens)
+                {
+                    sens.DataReceived += SensOnDataReceived;
+                }
+
                 _modules.Add(mod);
             }
+        }
+
+        private void SensOnDataReceived(object? sender, SensorEventArgs e)
+        {
+            
         }
 
         public ConfigDto GetConfig()
