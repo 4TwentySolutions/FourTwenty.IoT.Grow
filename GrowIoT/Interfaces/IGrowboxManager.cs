@@ -18,7 +18,7 @@ namespace GrowIoT.Interfaces
         Task SaveBox(GrowBoxViewModel box);
 
         Task<IReadOnlyList<ModuleVm>> GetModules();
-        Task<ModuleVm> GetModule(Guid id);
+        Task<ModuleVm> GetModule(int id);
         Task SaveModule(ModuleVm module);
         Task DeleteModule(ModuleVm module);
         Task DeleteRule(ModuleRule rule); 

@@ -2,81 +2,71 @@
 using System.Collections.Generic;
 using System.Device.Gpio;
 using System.IO;
-using System.Text;
+using System.Linq;
 using System.Threading.Tasks;
 using FourTwenty.IoT.Connect.Constants;
 using FourTwenty.IoT.Connect.Dto;
 using FourTwenty.IoT.Server.Components;
 using FourTwenty.IoT.Connect.Interfaces;
+using FourTwenty.IoT.Connect.Models;
+using FourTwenty.IoT.Server.Components.Sensors;
 using FourTwenty.IoT.Server.Rules;
 using GrowIoT.Interfaces;
 using GrowIoT.Models.Tests;
 using GrowIoT.ViewModels;
 using Newtonsoft.Json;
+using Quartz;
 
 namespace GrowIoT.Services
 {
     public class IoTConfigService : IIoTConfigService
     {
-        private ConfigDto _currentConfig;
-        // private GpioController _gpioController;
         private IList<IModule> _modules;
 
-        public async Task<ConfigDto> LoadConfig()
+        public void InitConfig(IScheduler scheduler, GrowBoxViewModel config, GpioController controller = null)
         {
-            ConfigDto config;
-
-            try
-            {
-                var filePath = Constants.Constants.ConfigPath;
-                if (!File.Exists(filePath))
-                {
-                    config = new ConfigDto();
-                    await using var fs = File.Create(filePath);
-                    var info = new UTF8Encoding(true).GetBytes(JsonConvert.SerializeObject(config));
-                    // Add some information to the file.
-                    fs.Write(info, 0, info.Length);
-                }
-                else
-                {
-                    var content = await File.ReadAllTextAsync(filePath);
-                    config = JsonConvert.DeserializeObject<ConfigDto>(content);
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"\n--- !!! Exception !!! ---\n");
-                Console.WriteLine($"--- {e.Message} ---\n");
-                config = new ConfigDto();
-            }
-            return _currentConfig = config;
-        }
-
-        public void InitConfig(GpioController controller = null, GrowBoxViewModel config = null)
-        {
-            if (_currentConfig?.Modules == null)
+            if (config?.Modules == null)
                 return;
 
             _modules = new List<IModule>();
 
-            foreach (var module in _currentConfig.Modules)
+            foreach (var module in config.Modules)
             {
                 IoTComponent mod = null;
                 var rules = new List<IRule>();
-                foreach (var moduleRuleDto in module.Rules)
-                {
-                    var cronRule = new CronRule(moduleRuleDto.Type, moduleRuleDto.CronExpression)
-                    {
-                        Period = TimeSpan.FromSeconds(moduleRuleDto.Period)
-                    };
 
-                    rules.Add(cronRule);
+                foreach (var moduleRule in module.Rules)
+                {
+                    if (moduleRule.RuleType == RuleType.CronRule)
+                    {
+                        var ruleData = JsonConvert.DeserializeObject<CronRuleData>(moduleRule.RuleContent) ?? new CronRuleData();
+
+                        var cronRule = new CronRule(ruleData.Job, ruleData.CronExpression, scheduler)
+                        {
+                            Period = TimeSpan.FromSeconds(ruleData.Delay.GetHashCode())
+                        };
+
+                        rules.Add(cronRule);
+                    }
                 }
 
 
                 if (module.Type == ModuleType.HumidityAndTemperature)
                 {
-                    mod = new MockModule(rules, new []{module.Pin.GetValueOrDefault()});//new DhtSensor(module.Pin.GetValueOrDefault(), controller, rules);
+#if DebugLocalWin
+
+                    mod = new MockModule(rules, new[] { module.Pins.FirstOrDefault() })
+                    {
+                        Name = nameof(MockModule)
+                    };
+
+#else
+                    mod = new DhtSensor(module.Pins.FirstOrDefault(), controller, rules)
+                    {
+                        Id = module.Id,
+                        Name = module.Name
+                    };
+#endif
                 }
 
                 if (mod is ISensor sens)
@@ -90,12 +80,17 @@ namespace GrowIoT.Services
 
         private void SensOnDataReceived(object? sender, SensorEventArgs e)
         {
-            
+            if (sender is IoTComponent component)
+            {
+                Console.WriteLine($"{component.Name} - {e.Data.ToString()}");
+
+            }
+
         }
 
         public ConfigDto GetConfig()
         {
-            return _currentConfig;
+            return null;
         }
 
         public IList<IModule> GetModules()

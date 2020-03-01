@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -16,11 +16,11 @@ namespace GrowIoT
         {
             _configService = new IoTConfigService();
 
-            var config = await _configService.LoadConfig();
-            CreateHostBuilder(args, config.ListeningPort).Build().Run();
+            //var config = await _configService.LoadConfig();
+            CreateHostBuilder(args).Build().Run();
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args, int port)
+        public static IHostBuilder CreateHostBuilder(string[] args)
         {
             Console.WriteLine("--- Starting Server ---");
             var configuration = new ConfigurationBuilder()

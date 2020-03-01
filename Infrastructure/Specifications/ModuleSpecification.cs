@@ -11,9 +11,9 @@ namespace Infrastructure.Specifications
 
     public class ModuleByIdSpecification : ModuleSpecification
     {
-        private readonly Guid _id;
+        private readonly int _id;
 
-        public ModuleByIdSpecification(Guid id)
+        public ModuleByIdSpecification(int id)
         {
             _id = id;
         }

@@ -9,6 +9,6 @@ namespace GrowIoT.ViewModels
         public JobType Job { get; set; }
         public RuleType RuleType { get; set; }
         public string RuleContent { get; set; }
-        public Guid GrowBoxModuleId { get; set; }
+        public int GrowBoxModuleId { get; set; }
     }
 }

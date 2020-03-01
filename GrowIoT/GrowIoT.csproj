@@ -11,14 +11,18 @@
     <DefineConstants>TRACE;TRACE,DebugLocalWin</DefineConstants>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;DebugLocalWin</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="9.0.0" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Blazored.Toast" Version="2.0.9" />
-    <PackageReference Include="BlazorStrap" Version="1.1.101" />
+    <PackageReference Include="BlazorStrap" Version="1.2.0" />
     <PackageReference Include="FourTwenty.Core.Data" Version="1.0.10" />
-    <PackageReference Include="FourTwenty.IoT.Connect" Version="1.0.1-pre.13" />
-    <PackageReference Include="FourTwenty.IoT.Server" Version="1.0.1-pre.10" />
+    <PackageReference Include="FourTwenty.IoT.Connect" Version="1.0.1-pre.21" />
+    <PackageReference Include="FourTwenty.IoT.Server" Version="1.0.1-pre.21" />
     <PackageReference Include="Iot.Device.Bindings" Version="1.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.2" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.2" />
@@ -26,7 +30,7 @@
     <PackageReference Include="Quartz" Version="3.0.7" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlcipher" Version="2.0.2" />
     <PackageReference Include="System.Device.Gpio" Version="1.0.0" />
-    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.0.20" />
+    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.0.21" />
   </ItemGroup>
 
   <ItemGroup>

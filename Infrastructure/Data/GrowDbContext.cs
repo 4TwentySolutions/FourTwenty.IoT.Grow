@@ -36,7 +36,7 @@ namespace Infrastructure.Data
             });
             modelBuilder.Entity<ModuleRule>().HasOne(x => x.GrowBoxModule).WithMany(x => x.Rules)
                 .HasForeignKey(x => x.GrowBoxModuleId);
-
+            
             modelBuilder.Entity<GrowBox>().HasData(new GrowBox() { Id = Constants.BoxId, Title = "My GrowBox" });
         }
     }
