@@ -90,6 +90,11 @@
                                                             <div class="list-group-item list-group-item-action">
                                                                 <div class="d-flex w-100 justify-content-between align-items-center">
                                                                     <span>@Localizer["Cron rule"] <small class="text-muted">@rule.Job</small></span>
+                                                                    @if (rule.Pin.HasValue)
+                                                                    {
+                                                                        <br/>
+                                                                        <span>@Localizer["Pin"] <small class="text-muted">@rule.Pin.GetValueOrDefault()</small></span>
+                                                                    }
                                                                     <div>
                                                                         <button class="btn text-info" @onclick="@((e)=>OnRuleClicked(rule))" type="button"><i class="fas fa-edit"></i></button>
                                                                         <button class="btn text-danger" @onclick="@((e)=>RemoveRule(rule))" type="button"><i class="fas fa-minus-circle"></i></button>
@@ -134,6 +139,24 @@
         <DataAnnotationsValidator />
         <BSModalHeader OnClick="@(() => RuleModal.Hide())">Rule</BSModalHeader>
         <BSModalBody>
+            @if (Module.Pins.Length >= 2)
+            {
+            <div class="form-group">
+                <label for="selectedPin" class="w-100">@Localizer["Select pin"]</label><br />
+                <select class="form-control" id="selectedPin" @bind="CurrentRule.Pin" aria-describedby="selectedPinHelp">
+                    @if (CurrentRule.Pins != null)
+                    {
+                        foreach (var pin in CurrentRule.Pins)
+                        {
+                            <option value="@pin">@pin</option>
+                        }
+                    }
+                </select>
+                <ValidationMessage For="@(()=>CurrentRule.Pin)" class="text-danger"></ValidationMessage>
+                <small id="selectedPinHelp" class="form-text text-muted">@Localizer["Select the pin for which you are creating a job"]</small>
+            </div>
+            }
+
             <div class="form-group">
                 <label for="radioRuleType" class="w-100">@Localizer["Select rule type"]</label><br />
                 @foreach (var ruleType in Enum.GetNames(typeof(RuleType)))
@@ -163,7 +186,7 @@
                         <label for="cronExpression">@Localizer["Cron expression"]</label>
                         <InputText type="text" class="form-control" @bind-Value="@CronRule.CronExpression" id="cronExpression" aria-describedby="cronExpressionHelp" placeholder="* * * * " />
                         <ValidationMessage For="@(()=>CronRule.CronExpression)" class="text-danger"></ValidationMessage>
-                        <small id="cronExpressionHelp" class="form-text text-muted">@Localizer["Enter cron expression for job scheduling"] (<NavLink href="https://www.baeldung.com/cron-expressions" target="_blank">Example</NavLink>)</small>
+                        <small id="cronExpressionHelp" class="form-text text-muted">@Localizer["Enter cron expression for job scheduling"] (<NavLink href="https://www.baeldung.com/cron-expressions" target="_blank">Example</NavLink>)<NavLink href="https://cronexpressiondescriptor.azurewebsites.net/" target="_blank">Descriptor</NavLink></small>
                     </div>
                     @if (CurrentRule.Job == JobType.Period)
                     {

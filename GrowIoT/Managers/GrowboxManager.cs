@@ -5,12 +5,14 @@ using System.Threading.Tasks;
 using AutoMapper;
 using FourTwenty.IoT.Connect.Entities;
 using FourTwenty.IoT.Connect.Interfaces;
+using FourTwenty.IoT.Connect.Models;
 using GrowIoT.Interfaces;
 using GrowIoT.ViewModels;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Infrastructure.Specifications;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace GrowIoT.Managers
 {
@@ -55,7 +57,6 @@ namespace GrowIoT.Managers
 
         public async Task<GrowBoxViewModel> GetBoxWithRules()
         {
-            var box = await _context.Boxes.FirstOrDefaultAsync();
             _box = await _context.Boxes.Include(d => d.Modules)
                 .ThenInclude(d => d.Rules).FirstOrDefaultAsync();
             return _mapper.Map(_box, new GrowBoxViewModel());
@@ -73,7 +74,16 @@ namespace GrowIoT.Managers
         {
             _module = await _modulesRepo.GetSingleBySpecAsync(
                 new ModuleWithRulesSpecification().And(new ModuleByIdSpecification(id)));
-            return _mapper.Map(_module, new ModuleVm());
+            var mod = _mapper.Map(_module, new ModuleVm());
+
+            foreach (var moduleRuleVm in mod.Rules)
+            {
+                var rule  = JsonConvert.DeserializeObject<CronRuleData>(moduleRuleVm.RuleContent) ?? new CronRuleData();
+                moduleRuleVm.Job = rule.Job;
+                moduleRuleVm.Pins = mod.Pins.ToList();
+            }
+
+            return mod;
         }
 
         public async Task SaveModule(ModuleVm module)

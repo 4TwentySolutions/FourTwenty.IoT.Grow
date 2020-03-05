@@ -52,14 +52,14 @@ namespace GrowIoT.Pages
             if (!(change.Value is string val && int.TryParse(val, out int length))) return;
             if (Module.Pins == null)
             {
-                Module.Pins = new int[length].Select(d=>d == 0 ? 2 : d).ToArray();
+                Module.Pins = new int[length].Select(d => d == 0 ? 2 : d).ToArray();
             }
             else
             {
                 var pins = Module.Pins;
                 if (length == pins.Length) return;
                 Array.Resize(ref pins, length);
-                Module.Pins = pins.Select(d=>d == 0 ? 2 : d).ToArray();                
+                Module.Pins = pins.Select(d => d == 0 ? 2 : d).ToArray();
             }
         }
 
@@ -90,6 +90,13 @@ namespace GrowIoT.Pages
         protected void AddRuleClicked()
         {
             CurrentRule = new ModuleRuleVm();
+
+            if (Module.Pins?.Length >= 1)
+            {
+                CurrentRule.Pins = Module.Pins.ToList();
+                CurrentRule.Pin = Module.Pins.FirstOrDefault();
+            }
+
             CronRule = new CronRuleData();
             RuleModal.Show();
         }
