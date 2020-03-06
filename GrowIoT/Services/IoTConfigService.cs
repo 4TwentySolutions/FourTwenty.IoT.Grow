@@ -9,13 +9,17 @@ using FourTwenty.IoT.Connect.Dto;
 using FourTwenty.IoT.Server.Components;
 using FourTwenty.IoT.Connect.Interfaces;
 using FourTwenty.IoT.Connect.Models;
+using FourTwenty.IoT.Server;
+using FourTwenty.IoT.Server.Components.Relays;
 using FourTwenty.IoT.Server.Components.Sensors;
+using FourTwenty.IoT.Server.Jobs;
 using FourTwenty.IoT.Server.Rules;
 using GrowIoT.Interfaces;
 using GrowIoT.Models.Tests;
 using GrowIoT.ViewModels;
 using Newtonsoft.Json;
 using Quartz;
+using Iot.Device.DHTxx;
 
 namespace GrowIoT.Services
 {
@@ -43,7 +47,8 @@ namespace GrowIoT.Services
 
                         var cronRule = new CronRule(ruleData.Job, ruleData.CronExpression, scheduler)
                         {
-                            Period = TimeSpan.FromSeconds(ruleData.Delay.GetHashCode())
+                            Period = TimeSpan.FromSeconds(ruleData.Delay.GetHashCode()),
+                            Pin = moduleRule.Pin
                         };
 
                         rules.Add(cronRule);
@@ -53,20 +58,41 @@ namespace GrowIoT.Services
 
                 if (module.Type == ModuleType.HumidityAndTemperature)
                 {
-#if DebugLocalWin
 
-                    mod = new MockModule(rules, new[] { module.Pins.FirstOrDefault() })
-                    {
-                        Name = nameof(MockModule)
-                    };
+                    //#if DebugLocalWin
 
-#else
+                    //                    mod = new MockModule(rules, new[] { module.Pins.FirstOrDefault() })
+                    //                    {
+                    //                        Name = nameof(MockModule)
+                    //                    };
+
+                    //#else
+                    //                mod = new DhtSensor(module.Pins.FirstOrDefault(), controller, rules)
+                    //                    {
+                    //                        Id = module.Id,
+                    //                        Name = module.Name
+                    //                    };
+                    //#endif
+
                     mod = new DhtSensor(module.Pins.FirstOrDefault(), controller, rules)
                     {
                         Id = module.Id,
                         Name = module.Name
                     };
-#endif
+
+                }
+
+                if (module.Type == ModuleType.TwoRelay)
+                {
+                    if (module.Pins?.Length >= 2)
+                    {
+                        mod = new DoubleRelay(module.Pins[0], module.Pins[1], controller)
+                        {
+                            Id = module.Id,
+                            Name = module.Name,
+                            Rules = rules
+                        };
+                    }
                 }
 
                 if (mod is ISensor sens)
@@ -82,7 +108,7 @@ namespace GrowIoT.Services
         {
             if (sender is IoTComponent component)
             {
-                Console.WriteLine($"{component.Name} - {e.Data.ToString()}");
+                Console.WriteLine($@"{component.Name} - {e.Data}");
 
             }
 
