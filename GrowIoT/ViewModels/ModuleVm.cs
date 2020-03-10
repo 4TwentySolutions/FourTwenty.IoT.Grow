@@ -2,14 +2,16 @@
 using FourTwenty.IoT.Connect.Constants;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using FourTwenty.IoT.Connect.Interfaces;
 using FourTwenty.IoT.Server.Components.Sensors;
+using Microsoft.AspNetCore.Components;
 
 namespace GrowIoT.ViewModels
 {
     public class ModuleVm
     {
-        public int Id{get;set;}
+        public int Id { get; set; }
         [Required]
         public string Name { get; set; }
         public ModuleType Type { get; set; }
@@ -18,7 +20,16 @@ namespace GrowIoT.ViewModels
         public GrowBoxViewModel GrowBox { get; set; }
         public ICollection<ModuleRuleVm> Rules { get; set; }
 
-        public string CurrentValue { get; set; }
+        private string _currentValue;
+        public string CurrentValue
+        {
+            get => _currentValue;
+            set => _currentValue = value;
+        }
+
+
+        public event EventHandler<SensorEventArgs> DataReceived;
+        public event EventHandler<RelayEventArgs> StateChanged;
 
 
         private ISensor _sensor;
@@ -30,38 +41,70 @@ namespace GrowIoT.ViewModels
                 _sensor = value;
                 if (_sensor != null)
                 {
-                    _sensor.DataReceived +=SensorOnDataReceived;
+                    _sensor.DataReceived += SensorOnDataReceived;
                 }
             }
         }
+
+        private IRelay _relay;
+        public IRelay Relay
+        {
+            get => _relay;
+            set
+            {
+                _relay = value;
+                if (_relay != null)
+                {
+                    _relay.StateChanged += RelayOnStateChanged;
+                }
+            }
+        }
+
+        private void RelayOnStateChanged(object? sender, RelayEventArgs e)
+        {
+            switch (Type)
+            {
+                case ModuleType.Relay:
+                    {
+                        CurrentValue = Relay.States.Aggregate("", (current, relayPin) => 
+                           // current + $"State {relayPin.Key}: {(relayPin.Value == RelayState.Opened ? "<b class='on-relay-state'>ON</b>" : "<b class='off-relay-state'>OFF</b>")} <br/>");
+                           current + $"Pin {relayPin.Key}: {(relayPin.Value == RelayState.Opened ? "<i class='fas fa-toggle-on'></i>" : "<i class='fas fa-toggle-off'></i>")} <br/>");
+                            
+                        break;
+                    }
+            }
+
+            OnStateChanged(e);
+        }
+
 
         private void SensorOnDataReceived(object? sender, SensorEventArgs e)
         {
             switch (Type)
             {
                 case ModuleType.HumidityAndTemperature:
-                {
-                    var moduleData = e.Data as DhtData;
-                    CurrentValue = $"Temperature - {moduleData?.Temperature.Celsius} \n Humidity - {moduleData?.Humidity}";
-                    break;
-                }
-                case ModuleType.Humidity:
-                    break;
-                case ModuleType.Temperature:
-                    break;
-                case ModuleType.Relay:
-                    break;
-                case ModuleType.TwoRelay:
-                    break;
-                case ModuleType.Fan:
-                    break;
-                case ModuleType.Light:
-                    break;
-                case ModuleType.WaterPump:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
+                    {
+                        if (e.Data is DhtData moduleData && !double.IsNaN(moduleData.Temperature.Celsius))
+                        {
+                            CurrentValue = $"<b><i class='fas fa-thermometer-half'></i>{moduleData.Temperature.Celsius}&#8451;</b><br/><b><i class='fas fa-tint'></i>{moduleData.Humidity}%</b>";
+                        }
+
+
+                        break;
+                    }
             }
+
+            OnDataReceived(e);
+        }
+
+        protected virtual void OnDataReceived(SensorEventArgs e)
+        {
+            DataReceived?.Invoke(this, e);
+        }
+
+        protected virtual void OnStateChanged(RelayEventArgs e)
+        {
+            StateChanged?.Invoke(this, e);
         }
     }
 }

@@ -13,5 +13,6 @@ namespace GrowIoT.ViewModels
         public int GrowBoxModuleId { get; set; }
         public List<int> Pins { get; set; }
         public int? Pin { get; set; }
+        public bool IsEnabled { get; set; }
     }
 }

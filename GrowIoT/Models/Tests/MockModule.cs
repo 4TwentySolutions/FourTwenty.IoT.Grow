@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Device.Gpio;
-using System.Linq;
 using System.Threading.Tasks;
 using FourTwenty.IoT.Connect.Interfaces;
 using FourTwenty.IoT.Server.Components;
@@ -10,6 +8,7 @@ namespace GrowIoT.Models.Tests
 {
     public class MockModule : IoTComponent, ISensor
     {
+        private readonly Random _random = new Random(123);
         public MockModule(IReadOnlyCollection<int> pins) : base(pins, null)
         {
         }
@@ -22,8 +21,9 @@ namespace GrowIoT.Models.Tests
 
         public ValueTask<object> GetData()
         {
-            DataReceived?.Invoke(this, new SensorEventArgs(-1));
-            return new ValueTask<object>(-1);
+            var val = _random.Next();
+            DataReceived?.Invoke(this, new SensorEventArgs(val));
+            return new ValueTask<object>(val);
         }
     }
 }

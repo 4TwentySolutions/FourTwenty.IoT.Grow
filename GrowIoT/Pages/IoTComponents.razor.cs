@@ -1,4 +1,5 @@
-﻿using Blazored.Toast.Services;
+﻿using System;
+using Blazored.Toast.Services;
 using FourTwenty.IoT.Connect.Entities;
 using GrowIoT.ViewModels;
 using Microsoft.AspNetCore.Components;
@@ -6,6 +7,7 @@ using Microsoft.Extensions.Localization;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using FourTwenty.IoT.Connect.Interfaces;
 
 namespace GrowIoT.Pages
 {
@@ -20,15 +22,34 @@ namespace GrowIoT.Pages
 
         #region properties
         public List<ModuleVm> Modules { get; set; }
-   
+
         #endregion
 
         protected override async Task OnInitializedAsync()
         {
             Modules = (await BoxManager.GetModules()).ToList();
-
-            
+            //var workedModules = ConfigService.GetModules();
+            foreach (var moduleVm in Modules)
+            {
+                moduleVm.DataReceived += OnDataReceived;
+            }
             await base.OnInitializedAsync();
+        }
+
+        private async void OnDataReceived(object? sender, SensorEventArgs e)
+        {
+            await InvokeAsync(() =>
+            {
+                try
+                {
+                    StateHasChanged();
+                }
+                catch (Exception exception)
+                {
+                    Console.WriteLine(exception);
+                }
+
+            });
         }
 
         protected async void Delete(ModuleVm module)

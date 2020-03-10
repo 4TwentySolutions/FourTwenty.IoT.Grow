@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -37,7 +36,7 @@ namespace GrowIoT.Managers
             ITrackedEfRepository<GrowBoxModule, int> modulesRepo,
             ITrackedEfRepository<ModuleRule, int> rulesRepo,
             GrowDbContext context,
-            IMapper mapper, 
+            IMapper mapper,
             IIoTConfigService configService)
         {
             _growBoxRepo = growBoxRepo;
@@ -78,7 +77,7 @@ namespace GrowIoT.Managers
 
             foreach (var moduleRuleVm in mod.Rules)
             {
-                var rule  = JsonConvert.DeserializeObject<CronRuleData>(moduleRuleVm.RuleContent) ?? new CronRuleData();
+                var rule = JsonConvert.DeserializeObject<CronRuleData>(moduleRuleVm.RuleContent) ?? new CronRuleData();
                 moduleRuleVm.Job = rule.Job;
                 moduleRuleVm.Pins = mod.Pins.ToList();
             }
@@ -110,9 +109,10 @@ namespace GrowIoT.Managers
             foreach (var moduleVm in mapped)
             {
                 moduleVm.Sensor = modules.FirstOrDefault(x => x.Id == moduleVm.Id) as ISensor;
+                moduleVm.Relay = modules.FirstOrDefault(x => x.Id == moduleVm.Id) as IRelay;
             }
 
             return mapped;
-        } 
+        }
     }
 }

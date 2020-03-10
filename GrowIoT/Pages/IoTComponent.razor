@@ -89,10 +89,21 @@
 
                                                             <div class="list-group-item list-group-item-action">
                                                                 <div class="d-flex w-100 justify-content-between align-items-center">
+
+                                                                    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                                                        <label class="btn btn-secondary btn-sm @(rule.IsEnabled ? "active":"")">
+                                                                            <input type="radio" name="options" id="onOption" checked="@rule.IsEnabled">ON
+                                                                        </label>
+                                                                        <label class="btn btn-secondary btn-sm @(!rule.IsEnabled ? "active":"")">
+                                                                            <input type="radio" name="options" id="offOption" checked="@(!rule.IsEnabled)">OFF
+                                                                        </label>
+                                                                    </div>
+
+
                                                                     <span>@Localizer["Cron rule"] <small class="text-muted">@rule.Job</small></span>
                                                                     @if (rule.Pin.HasValue)
                                                                     {
-                                                                        <br/>
+                                                                        <br />
                                                                         <span>@Localizer["Pin"] <small class="text-muted">@rule.Pin.GetValueOrDefault()</small></span>
                                                                     }
                                                                     <div>

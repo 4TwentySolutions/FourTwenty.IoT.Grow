@@ -59,20 +59,11 @@ namespace GrowIoT.Services
                 if (module.Type == ModuleType.HumidityAndTemperature)
                 {
 
-                    //#if DebugLocalWin
-
-                    //                    mod = new MockModule(rules, new[] { module.Pins.FirstOrDefault() })
-                    //                    {
-                    //                        Name = nameof(MockModule)
-                    //                    };
-
-                    //#else
-                    //                mod = new DhtSensor(module.Pins.FirstOrDefault(), controller, rules)
-                    //                    {
-                    //                        Id = module.Id,
-                    //                        Name = module.Name
-                    //                    };
-                    //#endif
+                    //mod = new MockModule(rules, new[] { module.Pins.FirstOrDefault() })
+                    //{
+                    //    Id = 2,
+                    //    Name = nameof(MockModule)
+                    //};
 
                     mod = new DhtSensor(module.Pins.FirstOrDefault(), controller, rules)
                     {
@@ -82,11 +73,18 @@ namespace GrowIoT.Services
 
                 }
 
-                if (module.Type == ModuleType.TwoRelay)
+                if (module.Type == ModuleType.Relay)
                 {
+
+                    //mod = new MockModule(rules, new[] { module.Pins.FirstOrDefault() })
+                    //{
+                    //    Id = 1,
+                    //    Name = nameof(MockModule)
+                    //};
+
                     if (module.Pins?.Length >= 2)
                     {
-                        mod = new DoubleRelay(module.Pins[0], module.Pins[1], controller)
+                        mod = new Relay(module.Pins, controller)
                         {
                             Id = module.Id,
                             Name = module.Name,
@@ -95,12 +93,26 @@ namespace GrowIoT.Services
                     }
                 }
 
-                if (mod is ISensor sens)
+                switch (mod)
                 {
-                    sens.DataReceived += SensOnDataReceived;
+                    case ISensor sens:
+                        sens.DataReceived += SensOnDataReceived;
+                        break;
+                    case IRelay relay:
+                        relay.StateChanged += RelayOnStateChanged;
+                        break;
                 }
 
-                _modules.Add(mod);
+                if (mod != null)
+                    _modules.Add(mod);
+            }
+        }
+
+        private void RelayOnStateChanged(object? sender, RelayEventArgs e)
+        {
+            if (sender is IoTComponent component)
+            {
+                //Console.WriteLine($@"{component.Name} - {(e.State == RelayState.Opened ? "ON" : "OFF")}");
             }
         }
 
@@ -108,10 +120,8 @@ namespace GrowIoT.Services
         {
             if (sender is IoTComponent component)
             {
-                Console.WriteLine($@"{component.Name} - {e.Data}");
-
+                //Console.WriteLine($@"{component.Name} - {e.Data}");
             }
-
         }
 
         public ConfigDto GetConfig()

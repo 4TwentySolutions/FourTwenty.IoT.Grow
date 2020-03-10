@@ -130,16 +130,9 @@ namespace GrowIoT
                 var growBox = await growBoxManager.GetBoxWithRules();
                 var scheduler = await StdSchedulerFactory.GetDefaultScheduler();
 
-//#if DebugLocalWin
 
-//                configService.InitConfig(scheduler, growBox);
-//                await jobsService.StartJobs(configService.GetModules());
-
-//#else
-//                using GpioController controller = new GpioController(PinNumberingScheme.Logical);
-//                configService.InitConfig(scheduler, growBox, controller);
-//                await jobsService.StartJobs(configService.GetModules());
-//#endif
+                //configService.InitConfig(scheduler, growBox);
+                //await jobsService.StartJobs(configService.GetModules());
 
                 using GpioController controller = new GpioController(PinNumberingScheme.Logical);
                 configService.InitConfig(scheduler, growBox, controller);

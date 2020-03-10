@@ -124,8 +124,10 @@ namespace GrowIoT.Pages
                     CronRule.Job = CurrentRule.Job;
                     CurrentRule.RuleContent = JsonConvert.SerializeObject(CronRule);
                     CurrentRule.GrowBoxModuleId = Module.Id;
+                   
                     if (CurrentRule.Id == 0)
                     {
+                        CurrentRule.IsEnabled = true;
                         if (Module.Rules == null)
                             Module.Rules = new List<ModuleRuleVm>();
                         Module.Rules?.Add(CurrentRule);
