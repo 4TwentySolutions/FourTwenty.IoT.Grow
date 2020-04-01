@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using FourTwenty.Core.Data.Repositories;
 using FourTwenty.IoT.Connect.Entities;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;

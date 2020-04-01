@@ -9,6 +9,7 @@ using GrowIoT.Interfaces;
 using GrowIoT.ViewModels;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace GrowIoT.Managers
@@ -19,6 +20,7 @@ namespace GrowIoT.Managers
 
         private readonly IGrowDataContext _context;
         private readonly IIoTConfigService _configService;
+        private readonly ILogger _logger;
 
         private readonly IMapper _mapper;
 
@@ -29,11 +31,13 @@ namespace GrowIoT.Managers
         public GrowboxManager(
             IGrowDataContext context,
             IMapper mapper,
-            IIoTConfigService configService)
+            IIoTConfigService configService,
+            ILogger<GrowboxManager> logger)
         {
             _context = context;
             _mapper = mapper;
             _configService = configService;
+            _logger = logger;
         }
 
         private GrowBox _box;

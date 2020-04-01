@@ -24,8 +24,11 @@ using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Quartz.Impl;
+using Serilog;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace GrowIoT
 {
@@ -59,13 +62,6 @@ namespace GrowIoT
             services.AddSingleton<IJobsService, JobsService>();
             services.AddSingleton<IHubService, HubService>();
 
-            //services.AddScoped(typeof(IRepository<,>), typeof(DataRepository<,>));
-            //services.AddScoped(typeof(IAsyncRepository<,>), typeof(DataRepository<,>));
-            //services.AddScoped(typeof(IRepository<>), typeof(DataRepository<>));
-            //services.AddScoped(typeof(IAsyncRepository<>), typeof(DataRepository<>));
-            //services.AddScoped(typeof(ITrackedEfRepository<>), typeof(DataRepository<>));
-            //services.AddScoped(typeof(ITrackedEfRepository<,>), typeof(DataRepository<,>));
-
 
             services.AddBlazoredToast();
             services.AddScoped<IGrowboxManager, GrowboxManager>();
@@ -91,8 +87,9 @@ namespace GrowIoT
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public async void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider)
+        public async void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider, ILogger<Startup> logger)
         {
+            logger.LogInformation("Configure started");
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -117,11 +114,14 @@ namespace GrowIoT
                 endpoints.MapHub<RealTimeDataHub>("/commandsHub");
                 endpoints.MapFallbackToPage("/_Host");
             });
+            logger.LogInformation("DB init");
             await serviceProvider.GetService<IGrowDataContext>().InitDb();
-            await InitIoT(serviceProvider);
+            logger.LogInformation("DB init finished\nStarting IOT initialization");
+            await InitIoT(serviceProvider, logger);
+            logger.LogInformation("IOT initialization finished");
         }
 
-        private static async Task InitIoT(IServiceProvider serviceProvider)
+        private static async Task InitIoT(IServiceProvider serviceProvider, ILogger logger)
         {
             try
             {
@@ -131,11 +131,15 @@ namespace GrowIoT
 
                 var growBoxManager = serviceProvider.GetService<IGrowboxManager>();
                 var growBox = await growBoxManager.GetBoxWithRules();
+                
+                logger.LogInformation($"{nameof(InitIoT)} GrowBox name - {growBox.Title}");
                 var scheduler = await StdSchedulerFactory.GetDefaultScheduler();
 
-
+                logger.LogInformation($"{nameof(InitIoT)} Iot config init");
                 configService.InitConfig(scheduler, growBox);
+                logger.LogInformation($"{nameof(InitIoT)} Iot config init finished");
                 await jobsService.StartJobs(configService.GetModules());
+                logger.LogInformation($"{nameof(InitIoT)} Jobs started");
 
                 //using GpioController controller = new GpioController(PinNumberingScheme.Logical);
                 //configService.InitConfig(scheduler, growBox, controller);
@@ -143,7 +147,7 @@ namespace GrowIoT
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                logger.LogCritical(e, nameof(InitIoT));
             }
         }
     }

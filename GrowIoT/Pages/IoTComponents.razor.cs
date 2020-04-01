@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FourTwenty.IoT.Connect.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace GrowIoT.Pages
 {
@@ -15,6 +16,7 @@ namespace GrowIoT.Pages
     {
         #region fields
 
+        [Inject] protected ILogger<IoTComponentsBase> Logger { get; private set; }
         [Inject] protected IStringLocalizer<AppResources> Localizer { get; private set; }
         [Inject] protected IToastService ToastService { get; private set; }
         #endregion
@@ -38,6 +40,7 @@ namespace GrowIoT.Pages
 
         private async void OnDataReceived(object? sender, SensorEventArgs e)
         {
+            Logger.LogInformation($"Data received: {e.Data}");
             await InvokeAsync(() =>
             {
                 try
@@ -46,7 +49,7 @@ namespace GrowIoT.Pages
                 }
                 catch (Exception exception)
                 {
-                    Console.WriteLine(exception);
+                    Logger.LogError(exception, nameof(OnDataReceived));
                 }
 
             });

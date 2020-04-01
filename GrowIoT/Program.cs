@@ -1,27 +1,25 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using GrowIoT.Logging;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using GrowIoT.Interfaces;
-using GrowIoT.Services;
+using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace GrowIoT
 {
     public class Program
     {
-        private static IIoTConfigService _configService;
-
         public static async Task Main(string[] args)
         {
-            _configService = new IoTConfigService();
-
-            //var config = await _configService.LoadConfig();
             CreateHostBuilder(args).Build().Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args)
         {
+            CreateLogger();
             Console.WriteLine("--- Starting Server ---");
             var configuration = new ConfigurationBuilder()
             .AddCommandLine(args)
@@ -34,11 +32,26 @@ namespace GrowIoT
 
 
             return Host.CreateDefaultBuilder(args)
-                            .ConfigureWebHostDefaults(webBuilder =>
-                            {
-                                webBuilder.UseUrls(hostUrl);
-                                webBuilder.UseStartup<Startup>();
-                            });
+                .ConfigureLogging(builder =>
+                {
+                    builder.ClearProviders();
+                    builder.AddConsole();
+                    builder.AddSerilog();
+                })
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseUrls(hostUrl);
+                    webBuilder.UseStartup<Startup>();
+                });
+        }
+
+        private static void CreateLogger()
+        {
+            var logger = LoggerProvider.GetLoggerConfiguration("Development")
+                .Enrich.WithProperty("Platform", "LocalPC")
+                .CreateLogger();
+            Log.Logger = logger;
+            Log.Information(nameof(CreateLogger));
         }
     }
 }
