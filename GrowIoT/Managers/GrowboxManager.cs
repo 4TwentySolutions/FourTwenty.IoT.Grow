@@ -7,9 +7,7 @@ using FourTwenty.IoT.Connect.Interfaces;
 using FourTwenty.IoT.Connect.Models;
 using GrowIoT.Interfaces;
 using GrowIoT.ViewModels;
-using Infrastructure.Data;
 using Infrastructure.Interfaces;
-using Infrastructure.Specifications;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
@@ -19,10 +17,7 @@ namespace GrowIoT.Managers
     {
         #region fields
 
-        private readonly ITrackedEfRepository<GrowBox, int> _growBoxRepo;
-        private readonly ITrackedEfRepository<GrowBoxModule, int> _modulesRepo;
-        private readonly ITrackedEfRepository<ModuleRule, int> _rulesRepo;
-        private readonly GrowDbContext _context;
+        private readonly IGrowDataContext _context;
         private readonly IIoTConfigService _configService;
 
         private readonly IMapper _mapper;
@@ -32,16 +27,10 @@ namespace GrowIoT.Managers
         public int[] AvailableGpio => new[] { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27 };
 
         public GrowboxManager(
-            ITrackedEfRepository<GrowBox, int> growBoxRepo,
-            ITrackedEfRepository<GrowBoxModule, int> modulesRepo,
-            ITrackedEfRepository<ModuleRule, int> rulesRepo,
-            GrowDbContext context,
+            IGrowDataContext context,
             IMapper mapper,
             IIoTConfigService configService)
         {
-            _growBoxRepo = growBoxRepo;
-            _modulesRepo = modulesRepo;
-            _rulesRepo = rulesRepo;
             _context = context;
             _mapper = mapper;
             _configService = configService;
@@ -50,7 +39,7 @@ namespace GrowIoT.Managers
         private GrowBox _box;
         public async Task<GrowBoxViewModel> GetBox()
         {
-            _box = await _growBoxRepo.GetByIdAsync(Infrastructure.Constants.BoxId);
+            _box = await _context.Boxes.FindAsync(Infrastructure.Constants.BoxId);
             return _mapper.Map(_box, new GrowBoxViewModel());
         }
 
@@ -64,16 +53,14 @@ namespace GrowIoT.Managers
         public async Task SaveBox(GrowBoxViewModel box)
         {
             _mapper.Map(box, _box);
-            await _growBoxRepo.Save();
+            await _context.CommitAsync();
         }
 
 
-        private GrowBoxModule _module = new GrowBoxModule();
         public async Task<ModuleVm> GetModule(int id)
         {
-            _module = await _modulesRepo.GetSingleBySpecAsync(
-                new ModuleWithRulesSpecification().And(new ModuleByIdSpecification(id)));
-            var mod = _mapper.Map(_module, new ModuleVm());
+            var module  = await _context.Modules.Include(d => d.Rules).FirstOrDefaultAsync(d => d.Id == id);
+            var mod = _mapper.Map<ModuleVm>(module);
 
             foreach (var moduleRuleVm in mod.Rules)
             {
@@ -87,23 +74,28 @@ namespace GrowIoT.Managers
 
         public async Task SaveModule(ModuleVm module)
         {
-            _mapper.Map(module, _module);
-            if (module.Id != default)
-            {
-                await _modulesRepo.Save();
-            }
-            else
-            {
-                await _modulesRepo.AddAsync(_module);
-            }
+            _mapper.Map(module, module.DbEntity);
+            if (module.Id == default)
+                await _context.Modules.AddAsync(module.DbEntity);
+            await _context.CommitAsync();
         }
 
-        public Task DeleteModule(ModuleVm module) => _modulesRepo.DeleteAsync(module.Id);
-        public Task DeleteRule(ModuleRule rule) => _rulesRepo.DeleteAsync(rule);
+        public async Task DeleteModule(ModuleVm module)
+        {
+            if (module.DbEntity == null)
+                return;
+            _context.Modules.Remove(module.DbEntity);
+            await _context.CommitAsync();
+        }
+        public async Task DeleteRule(ModuleRule rule)
+        {
+            _context.Rules.Remove(rule);
+            await _context.CommitAsync();
+        }
 
         public async Task<IReadOnlyList<ModuleVm>> GetModules()
         {
-            var mapped = _mapper.Map<IReadOnlyList<ModuleVm>>(await _modulesRepo.ListAllAsync());
+            var mapped = _mapper.Map<IReadOnlyList<ModuleVm>>(await _context.Modules.ToListAsync());
             var modules = _configService.GetModules();
 
             foreach (var moduleVm in mapped)

@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using FourTwenty.IoT.Connect.Constants;
+using FourTwenty.IoT.Connect.Entities;
 
 namespace GrowIoT.ViewModels
 {
-    public class ModuleRuleVm
+    public class ModuleRuleVm : EntityViewModel<ModuleRule>
     {
         public int Id { get; set; }
         public JobType Job { get; set; }

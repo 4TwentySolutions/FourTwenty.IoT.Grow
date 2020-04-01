@@ -21,6 +21,7 @@ using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
@@ -41,10 +42,12 @@ namespace GrowIoT
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<ISqLiteProvider, SqLiteProvider>();
-            services.AddDbContextPool<GrowDbContext>((provider, builder) => builder.UseSqlite(provider.GetService<ISqLiteProvider>().GetConnection()));
+            services.AddSingleton<ISqlProvider<SqliteConnection>, SqLiteProvider>();
+            services.AddDbContextPool<IGrowDataContext, GrowDbContext>((provider, builder) => builder.UseSqlite(provider.GetService<ISqlProvider<SqliteConnection>>().GetConnection()));
+
+
             services.AddMvc(options => options.EnableEndpointRouting = false)
-                .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
+                .SetCompatibilityVersion(CompatibilityVersion.Latest)
                 .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix, opts => opts.ResourcesPath = "Resources");
 
             services.AddRazorPages();
@@ -56,12 +59,12 @@ namespace GrowIoT
             services.AddSingleton<IJobsService, JobsService>();
             services.AddSingleton<IHubService, HubService>();
 
-            services.AddScoped(typeof(IRepository<,>), typeof(DataRepository<,>));
-            services.AddScoped(typeof(IAsyncRepository<,>), typeof(DataRepository<,>));
-            services.AddScoped(typeof(IRepository<>), typeof(DataRepository<>));
-            services.AddScoped(typeof(IAsyncRepository<>), typeof(DataRepository<>));
-            services.AddScoped(typeof(ITrackedEfRepository<>), typeof(DataRepository<>));
-            services.AddScoped(typeof(ITrackedEfRepository<,>), typeof(DataRepository<,>));
+            //services.AddScoped(typeof(IRepository<,>), typeof(DataRepository<,>));
+            //services.AddScoped(typeof(IAsyncRepository<,>), typeof(DataRepository<,>));
+            //services.AddScoped(typeof(IRepository<>), typeof(DataRepository<>));
+            //services.AddScoped(typeof(IAsyncRepository<>), typeof(DataRepository<>));
+            //services.AddScoped(typeof(ITrackedEfRepository<>), typeof(DataRepository<>));
+            //services.AddScoped(typeof(ITrackedEfRepository<,>), typeof(DataRepository<,>));
 
 
             services.AddBlazoredToast();
@@ -114,7 +117,7 @@ namespace GrowIoT
                 endpoints.MapHub<RealTimeDataHub>("/commandsHub");
                 endpoints.MapFallbackToPage("/_Host");
             });
-            await serviceProvider.GetService<GrowDbContext>().InitDb();
+            await serviceProvider.GetService<IGrowDataContext>().InitDb();
             await InitIoT(serviceProvider);
         }
 
@@ -131,17 +134,16 @@ namespace GrowIoT
                 var scheduler = await StdSchedulerFactory.GetDefaultScheduler();
 
 
-                //configService.InitConfig(scheduler, growBox);
-                //await jobsService.StartJobs(configService.GetModules());
-
-                using GpioController controller = new GpioController(PinNumberingScheme.Logical);
-                configService.InitConfig(scheduler, growBox, controller);
+                configService.InitConfig(scheduler, growBox);
                 await jobsService.StartJobs(configService.GetModules());
+
+                //using GpioController controller = new GpioController(PinNumberingScheme.Logical);
+                //configService.InitConfig(scheduler, growBox, controller);
+                //await jobsService.StartJobs(configService.GetModules());
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                throw;
             }
         }
     }

@@ -3,13 +3,13 @@ using FourTwenty.IoT.Connect.Constants;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using FourTwenty.IoT.Connect.Entities;
 using FourTwenty.IoT.Connect.Interfaces;
 using FourTwenty.IoT.Server.Components.Sensors;
-using Microsoft.AspNetCore.Components;
 
 namespace GrowIoT.ViewModels
 {
-    public class ModuleVm
+    public class ModuleVm : EntityViewModel<GrowBoxModule>
     {
         public int Id { get; set; }
         [Required]
@@ -66,10 +66,10 @@ namespace GrowIoT.ViewModels
             {
                 case ModuleType.Relay:
                     {
-                        CurrentValue = Relay.States.Aggregate("", (current, relayPin) => 
+                        CurrentValue = Relay.States.Aggregate("", (current, relayPin) =>
                            // current + $"State {relayPin.Key}: {(relayPin.Value == RelayState.Opened ? "<b class='on-relay-state'>ON</b>" : "<b class='off-relay-state'>OFF</b>")} <br/>");
                            current + $"Pin {relayPin.Key}: {(relayPin.Value == RelayState.Opened ? "<i class='fas fa-toggle-on'></i>" : "<i class='fas fa-toggle-off'></i>")} <br/>");
-                            
+
                         break;
                     }
             }

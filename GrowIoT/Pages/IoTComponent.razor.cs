@@ -13,6 +13,7 @@ using GrowIoT.Interfaces;
 using Microsoft.Extensions.Localization;
 using System.Linq;
 using GrowIoT.ViewModels;
+using Infrastructure.Interfaces;
 
 namespace GrowIoT.Pages
 {
@@ -20,7 +21,7 @@ namespace GrowIoT.Pages
     {
         #region fields
 
-        [Inject] protected IAsyncRepository<GrowBoxModule, int> ModuleRepo { get; private set; }
+        [Inject] protected IGrowDataContext DataContext { get; private set; }
         [Inject] protected IStringLocalizer<AppResources> Localizer { get; private set; }
         [Inject] protected IToastService ToastService { get; private set; }
         [Inject] protected NavigationManager NavigationManager { get; private set; }

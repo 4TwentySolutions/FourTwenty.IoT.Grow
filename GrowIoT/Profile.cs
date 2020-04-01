@@ -9,10 +9,8 @@ namespace GrowIoT
         public GrowProfile()
         {
             CreateMap<GrowBox, GrowBoxViewModel>().ReverseMap();
-            CreateMap<GrowBoxModule, ModuleVm>().ReverseMap();
-            CreateMap<ModuleRule, ModuleRuleVm>().ReverseMap();
-
-            //CreateMap<ModuleVm, IoTComponent>();
+            CreateMap<GrowBoxModule, ModuleVm>().AfterMap((entity, vm) => vm.SetEntity(entity)).ReverseMap();
+            CreateMap<ModuleRule, ModuleRuleVm>().AfterMap((entity, vm) => vm.SetEntity(entity)).ReverseMap();
         }
     }
 }

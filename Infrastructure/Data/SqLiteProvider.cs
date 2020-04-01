@@ -1,9 +1,10 @@
 ﻿using System;
+using FourTwenty.Core.Data.Interfaces;
 using Microsoft.Data.Sqlite;
 
 namespace Infrastructure.Data
 {
-    public class SqLiteProvider : ISqLiteProvider, IDisposable
+    public class SqLiteProvider : ISqlProvider<SqliteConnection>, IDisposable
     {
         private bool _disposed;
         private SqliteConnection _asyncConnection;
@@ -44,7 +45,7 @@ namespace Infrastructure.Data
             Dispose(true);
         }
 
-        private void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (_disposed)
                 return;

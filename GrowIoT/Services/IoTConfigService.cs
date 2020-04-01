@@ -59,38 +59,38 @@ namespace GrowIoT.Services
                 if (module.Type == ModuleType.HumidityAndTemperature)
                 {
 
-                    //mod = new MockModule(rules, new[] { module.Pins.FirstOrDefault() })
-                    //{
-                    //    Id = 2,
-                    //    Name = nameof(MockModule)
-                    //};
-
-                    mod = new DhtSensor(module.Pins.FirstOrDefault(), controller, rules)
+                    mod = new MockModule(rules, new[] { module.Pins.FirstOrDefault() })
                     {
-                        Id = module.Id,
-                        Name = module.Name
+                        Id = 2,
+                        Name = nameof(MockModule)
                     };
+
+                    //mod = new DhtSensor(module.Pins.FirstOrDefault(), controller, rules)
+                    //{
+                    //    Id = module.Id,
+                    //    Name = module.Name
+                    //};
 
                 }
 
                 if (module.Type == ModuleType.Relay)
                 {
 
-                    //mod = new MockModule(rules, new[] { module.Pins.FirstOrDefault() })
-                    //{
-                    //    Id = 1,
-                    //    Name = nameof(MockModule)
-                    //};
-
-                    if (module.Pins?.Length >= 2)
+                    mod = new MockModule(rules, new[] { module.Pins.FirstOrDefault() })
                     {
-                        mod = new Relay(module.Pins, controller)
-                        {
-                            Id = module.Id,
-                            Name = module.Name,
-                            Rules = rules
-                        };
-                    }
+                        Id = 1,
+                        Name = nameof(MockModule)
+                    };
+
+                    //if (module.Pins?.Length >= 2)
+                    //{
+                    //    mod = new Relay(module.Pins, controller)
+                    //    {
+                    //        Id = module.Id,
+                    //        Name = module.Name,
+                    //        Rules = rules
+                    //    };
+                    //}
                 }
 
                 switch (mod)
