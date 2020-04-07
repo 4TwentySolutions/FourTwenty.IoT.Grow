@@ -1,0 +1,81 @@
+﻿@page "/diagnostic/logs"
+@using System.IO
+@using Microsoft.Extensions.Localization
+@inherits BaseGrowComponent
+@attribute [Authorize]
+@inject IStringLocalizer<AppResources> Localizer
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h1>@Localizer["Application logs"]</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><NavLink href="/">@Localizer["Home"]</NavLink></li>
+                    <li class="breadcrumb-item active" aria-current="page">@Localizer["Logs"]</li>
+                </ol>
+            </nav>
+            <div class="card mt-4">
+                <div class="card-body">
+                    @if (IsLoading)
+                    {
+                        <div class="spinner-border mx-auto d-block" role="status">
+                            <span class="sr-only">@Localizer["Loading"]...</span>
+                        </div>
+                    }
+
+
+                    @if (LogsGroups != null && LogsGroups.Any())
+                    {
+                        <div class="accordion">
+                            @foreach (var dailyLog in LogsGroups)
+                            {
+                                <BSCard CardType="CardType.Card">
+                                    <BSCard CardType="CardType.Header"><BSButton ButtonType="ButtonType.Button" OnClick="@((e)=>AccordionClick(e,dailyLog))" Color="Color.None" Class="btn-link">@dailyLog.Date.ToShortDateString()</BSButton></BSCard>
+                                    <BSCollapse IsOpen="@dailyLog.IsOpen">
+                                        <BSCard CardType="CardType.Text">
+                                            @foreach (var log in dailyLog.Logs)
+                                            {
+                                                <div class="p-4">
+                                                    <span class="h3 mb-3">@log.FileName</span>
+                                                    <div class="overflow-auto" style="max-height: 350px;">
+                                                        <p class="text-monospace text-muted">
+                                                            @{
+                                                                try
+                                                                {
+                                                                    log.Content = !string.IsNullOrEmpty(log.Content) ? log.Content : ReadFile(log.Path);
+                                                                    <text>@((MarkupString)log.Content)</text>
+                                                                }
+                                                                catch (Exception ex)
+                                                                {
+                                                                    <text>@ex.Message</text>
+                                                                }
+                                                            }
+
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </BSCard>
+                                    </BSCollapse>
+                                </BSCard>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div>@Localizer["No logs found"]</div>
+                    }
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <VersionDisplay />
+</div>
+

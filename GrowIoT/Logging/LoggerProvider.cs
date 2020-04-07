@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using Serilog;
 using Serilog.Events;
 
@@ -11,13 +10,14 @@ namespace GrowIoT.Logging
         {
 
             string outputTemplate = "[{Timestamp:dd.MM.yyyy HH:mm:ss.fff zzz} {Level:u3} for {Platform} in {Environment}({SourceContext})] {Message:lj} {Exception}{NewLine}";
-            var logFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "logs.txt");
+            var logFilePath = Path.Combine(Constants.Constants.LogsDirectory, "logs.txt");
             return new LoggerConfiguration()
                 .Enrich.FromLogContext()
                 .Enrich.WithProperty("Environment", environment)
                 .MinimumLevel.Verbose()
+                //.WriteTo.Logger()
                 .WriteTo.File(logFilePath, LogEventLevel.Verbose, rollingInterval: RollingInterval.Day,
-                    fileSizeLimitBytes: 5000000, outputTemplate: outputTemplate);
+                    fileSizeLimitBytes: 50000000, outputTemplate: outputTemplate);
         }
     }
 }
