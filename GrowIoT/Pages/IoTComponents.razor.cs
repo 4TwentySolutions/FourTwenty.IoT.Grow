@@ -8,10 +8,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FourTwenty.IoT.Connect.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 
 namespace GrowIoT.Pages
 {
+    [Authorize]
     public class IoTComponentsBase : BaseGrowComponent
     {
         #region fields

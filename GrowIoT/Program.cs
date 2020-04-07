@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using GrowIoT.Extensions;
 using GrowIoT.Logging;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -14,7 +15,7 @@ namespace GrowIoT
     {
         public static async Task Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            CreateHostBuilder(args).Build().SeedIdentity().Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args)

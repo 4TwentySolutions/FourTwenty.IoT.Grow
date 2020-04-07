@@ -8,6 +8,8 @@ using FourTwenty.Core.Data.Interfaces;
 using FourTwenty.IoT.Server.Hubs;
 using FourTwenty.IoT.Server.Interfaces;
 using FourTwenty.IoT.Server.Services;
+using Ganss.XSS;
+using GrowIoT.Areas.Identity;
 using GrowIoT.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -19,6 +21,8 @@ using GrowIoT.Managers;
 using GrowIoT.Services;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Data.Sqlite;
@@ -46,9 +50,16 @@ namespace GrowIoT
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<ISqlProvider<SqliteConnection>, SqLiteProvider>();
-            services.AddDbContextPool<IGrowDataContext, GrowDbContext>((provider, builder) => builder.UseSqlite(provider.GetService<ISqlProvider<SqliteConnection>>().GetConnection()));
+            services.AddDbContextPool<GrowDbContext>((provider, builder) => builder.UseSqlite(provider.GetService<ISqlProvider<SqliteConnection>>().GetConnection()));
+            services.AddScoped<IGrowDataContext>(provider => provider.GetRequiredService<GrowDbContext>());
 
-
+            services.AddIdentity<IdentityUser, IdentityRole>(options =>
+                {
+                    options.SignIn.RequireConfirmedAccount = false;
+                    options.SignIn.RequireConfirmedEmail = false;
+                    options.SignIn.RequireConfirmedPhoneNumber = false;
+                })
+                .AddEntityFrameworkStores<GrowDbContext>();
             services.AddMvc(options => options.EnableEndpointRouting = false)
                 .SetCompatibilityVersion(CompatibilityVersion.Latest)
                 .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix, opts => opts.ResourcesPath = "Resources");
@@ -57,11 +68,19 @@ namespace GrowIoT
             services.AddServerSideBlazor();
             services.AddSignalR();
             services.AddAutoMapper(GetType());
+            services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
 
             services.AddSingleton<IIoTConfigService, IoTConfigService>();
             services.AddSingleton<IJobsService, JobsService>();
             services.AddSingleton<IHubService, HubService>();
-
+            services.AddScoped<IHtmlSanitizer, HtmlSanitizer>(x =>
+            {
+                // Configure sanitizer rules as needed here.
+                // For now, just use default rules + allow class attributes
+                var sanitizer = new Ganss.XSS.HtmlSanitizer();
+                sanitizer.AllowedAttributes.Add("class");
+                return sanitizer;
+            });
 
             services.AddBlazoredToast();
             services.AddScoped<IGrowboxManager, GrowboxManager>();
@@ -104,6 +123,9 @@ namespace GrowIoT
                 .GetService<IOptions<RequestLocalizationOptions>>().Value;
             app.UseRequestLocalization(localizationOptions);
             app.UseRouting();
+            
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseHealthChecks("/ping");
             app.UseMvcWithDefaultRoute();
@@ -131,7 +153,7 @@ namespace GrowIoT
 
                 var growBoxManager = serviceProvider.GetService<IGrowboxManager>();
                 var growBox = await growBoxManager.GetBoxWithRules();
-                
+
                 logger.LogInformation($"{nameof(InitIoT)} GrowBox name - {growBox.Title}");
                 var scheduler = await StdSchedulerFactory.GetDefaultScheduler();
 

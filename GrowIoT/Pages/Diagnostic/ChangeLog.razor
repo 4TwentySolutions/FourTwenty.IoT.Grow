@@ -1,0 +1,48 @@
+﻿@using Microsoft.AspNetCore.Hosting
+@using Microsoft.Extensions.Localization
+@inherits BaseGrowComponent
+@page "/diagnostic/changelog"
+@attribute [Authorize]
+@inject IStringLocalizer<AppResources> Localizer
+@inject IWebHostEnvironment Environment
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h1>@Localizer["Changelog"]</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><NavLink href="/">@Localizer["Home"]</NavLink></li>
+                    <li class="breadcrumb-item active" aria-current="page">@Localizer["Changelog"]</li>
+                </ol>
+            </nav>
+            <div class="card mt-4">
+                <div class="card-body">
+                    @if (IsLoading)
+                    {
+                        <div class="spinner-border mx-auto d-block" role="status">
+                            <span class="sr-only">@Localizer["Loading"]...</span>
+                        </div>
+                    }
+                    @if (System.IO.File.Exists(System.IO.Path.Combine($"{Environment.ContentRootPath}", $"changelog.md")))
+                    {
+                        <link rel="stylesheet" href="/lib/github-markdown-css/github-markdown.min.css">
+                        <div class="markdown-body">
+                            <Markdown Content="@System.IO.File.ReadAllText(System.IO.Path.Combine($"{Environment.ContentRootPath}", $"changelog.md"))"></Markdown>
+                        </div>
+                    }
+                    else
+                    {
+                        <div>@Localizer["Changelog file not found"]</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    <VersionDisplay />
+</div>
+

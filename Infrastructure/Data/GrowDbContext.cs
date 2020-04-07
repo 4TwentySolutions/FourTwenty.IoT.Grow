@@ -4,11 +4,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using FourTwenty.IoT.Connect.Entities;
 using Infrastructure.Interfaces;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data
 {
-    public class GrowDbContext : DbContext, IGrowDataContext
+    public class GrowDbContext : IdentityDbContext, IGrowDataContext
     {
         public virtual DbSet<GrowBox> Boxes { get; set; }
         public virtual DbSet<GrowBoxModule> Modules { get; set; }

@@ -1,0 +1,35 @@
+﻿@page
+@using GrowIoT
+@using Microsoft.Extensions.Localization
+@using GrowIoT.Areas.Identity.Pages.Account
+@inject IStringLocalizer<AppResources> Localizer
+@model LoginModel
+
+@{
+    Layout = "Shared/_Layout";
+    ViewData["Title"] = "Log in";
+}
+
+
+<div class="login-dark">
+    <form method="post">
+        <h2 class="sr-only">@Localizer["УкрБурМаш"]</h2>
+        <div class="illustration"><i class="fa fa-lock"></i></div>
+        <div class="form-group">
+            <input class="form-control" type="email" placeholder="Email" asp-for="Input.Username" />
+            <span asp-validation-for="Input.Username" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <input class="form-control" type="password" placeholder="@Localizer["Пароль"]" asp-for="Input.Password" />
+            <span asp-validation-for="Input.Password" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <button class="btn btn-primary btn-block" type="submit">@Localizer["Войти"]</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script type="text/javascript" src="/lib/jquery/jquery.min.js"></script>
+    <partial name="_ValidationScriptsPartial" />
+}
