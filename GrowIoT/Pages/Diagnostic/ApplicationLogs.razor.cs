@@ -27,7 +27,7 @@ namespace GrowIoT.Pages.Diagnostic
         protected MarkupString RealTimeLogs => (MarkupString)StringLogs;
         protected bool IsStreaming { get; set; }
 
-        private Timer Timer;
+        private Timer _timer;
 
         public ApplicationLogs()
         {
@@ -59,10 +59,10 @@ namespace GrowIoT.Pages.Diagnostic
         private void StartLogStream()
         {
             IsStreaming = true;
-            if (Timer == null)
-                Timer = new Timer(2500) { AutoReset = true, Enabled = true };
-            Timer.Elapsed += DisplayTimerElapsed;
-            Timer.Start();
+            if (_timer == null)
+                _timer = new Timer(2500) { AutoReset = true, Enabled = true };
+            _timer.Elapsed += DisplayTimerElapsed;
+            _timer.Start();
             LoggerProvider.RealTimeSink.LogReceived += RealTimeSinkOnLogReceived;
         }
 
@@ -75,10 +75,10 @@ namespace GrowIoT.Pages.Diagnostic
         private void StopStreamLog()
         {
             IsStreaming = false;
-            if (Timer != null)
+            if (_timer != null)
             {
-                Timer.Elapsed -= DisplayTimerElapsed;
-                Timer.Stop();
+                _timer.Elapsed -= DisplayTimerElapsed;
+                _timer.Stop();
             }
             LoggerProvider.RealTimeSink.LogReceived -= RealTimeSinkOnLogReceived;
         }
@@ -95,10 +95,6 @@ namespace GrowIoT.Pages.Diagnostic
             StateHasChanged();
         }
 
-        private void DownloadLogs(DiagnosticDailyLog log)
-        {
-
-        }
 
         private void RealTimeSinkOnLogReceived(object? sender, LogEventArgs e)
         {
