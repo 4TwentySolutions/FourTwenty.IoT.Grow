@@ -136,6 +136,33 @@ a, .btn-link {
         top: 0.5rem;
     }
 
+
+.real-time-output {
+    overflow: auto;
+    position: relative;
+    background-color: black;
+    background-image: radial-gradient( rgba(0, 150, 0, 0.75), black 120% );
+    height: 450px;
+    color: white;
+    text-shadow: 0 0 5px #C8C8C8;
+    font: 1rem Inconsolata, monospace;
+}
+
+    .real-time-output::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 450px;
+        background: repeating-linear-gradient( 0deg, rgba(black, 0.15), rgba(black, 0.15) 1px, transparent 1px, transparent 2px );
+    }
+
+    .real-time-output ::selection {
+        background: #0080FF;
+        text-shadow: none;
+    }
+
 @media (max-width: 767.98px) {
     .main .top-row:not(.auth) {
         display: none;

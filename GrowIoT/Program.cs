@@ -37,7 +37,7 @@ namespace GrowIoT
                 {
                     builder.ClearProviders();
                     builder.AddConsole();
-                    builder.AddSerilog();
+                    builder.AddSerilog(Log.Logger);
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
