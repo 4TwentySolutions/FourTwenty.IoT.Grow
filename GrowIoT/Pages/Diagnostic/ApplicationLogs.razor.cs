@@ -19,7 +19,7 @@ namespace GrowIoT.Pages.Diagnostic
 {
     public partial class ApplicationLogs
     {
-        
+
         [Inject] protected IJSRuntime JSRuntime { get; private set; }
         [Inject] protected ILogger<ApplicationLogs> Logger { get; private set; }
         protected List<DiagnosticDailyLog> LogsGroups { get; set; }
@@ -49,7 +49,7 @@ namespace GrowIoT.Pages.Diagnostic
                     .Select(d => new DiagnosticDailyLog()
                     {
                         Date = DateTime.ParseExact(d.Key, "yyyyMMdd", CultureInfo.InvariantCulture),
-                        Logs = d.Select(c => new DiagnosticLog() { Path = c.path }).ToList()
+                        Logs = d.Select(c => new DiagnosticLog() { Path = c.path }).FirstOrDefault()
                     }).ToList();
 
             }
@@ -93,6 +93,11 @@ namespace GrowIoT.Pages.Diagnostic
         {
             log.IsOpen = !log.IsOpen;
             StateHasChanged();
+        }
+
+        private void DownloadLogs(DiagnosticDailyLog log)
+        {
+
         }
 
         private void RealTimeSinkOnLogReceived(object? sender, LogEventArgs e)

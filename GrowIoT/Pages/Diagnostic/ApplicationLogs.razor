@@ -35,35 +35,37 @@
                                 <BSTabContent>
                                     @if (LogsGroups != null && LogsGroups.Any())
                                     {
-                                        <div class="accordion">
+                                        <div class="accordion mt-4">
                                             @foreach (var dailyLog in LogsGroups)
                                             {
                                                 <BSCard CardType="CardType.Card">
-                                                    <BSCard CardType="CardType.Header"><BSButton ButtonType="ButtonType.Button" OnClick="@((e)=>AccordionClick(e,dailyLog))" Color="Color.None" Class="btn-link">@dailyLog.Date.ToString("dd MMMM yyyy (dd.MM.yyyy)")</BSButton></BSCard>
+                                                    <BSCard CardType="CardType.Header">
+                                                        <div class="d-flex justify-content-between">
+                                                            <BSButton ButtonType="ButtonType.Button" OnClick="@((e)=>AccordionClick(e,dailyLog))" Color="Color.None" Class="btn-link">@dailyLog.Date.ToString("dd MMMM yyyy (dd.MM.yyyy)")</BSButton>
+                                                            <a href="/common/DownloadLogFile?name=@dailyLog.Logs.FileName" class="btn btn-secondary btn-sm"><i class="fa fa-download"></i></a>
+                                                        </div>
+                                                    </BSCard>
                                                     <BSCollapse IsOpen="@dailyLog.IsOpen">
                                                         <BSCard CardType="CardType.Text">
-                                                            @foreach (var log in dailyLog.Logs)
-                                                            {
-                                                                <div class="p-4 mt-4">
-                                                                    <span class="h3 mb-3">@log.FileName</span>
-                                                                    <div class="overflow-auto" style="max-height: 350px;">
-                                                                        <p class="text-monospace text-muted">
-                                                                            @{
-                                                                                try
-                                                                                {
-                                                                                    log.Content = !string.IsNullOrEmpty(log.Content) ? log.Content : ReadFile(log.Path);
-                                                                                    <text>@((MarkupString)log.Content)</text>
-                                                                                }
-                                                                                catch (Exception ex)
-                                                                                {
-                                                                                    <text>@ex.Message</text>
-                                                                                }
+                                                            <div class="p-4 mt-4 bg-dark text-white">
+                                                                <span class="h3 mb-3">@dailyLog.Logs.FileName</span>
+                                                                <div class="overflow-auto" style="max-height: 350px;">
+                                                                    <p class="text-monospace text-white">
+                                                                        @{
+                                                                            try
+                                                                            {
+                                                                                dailyLog.Logs.Content = !string.IsNullOrEmpty(dailyLog.Logs.Content) ? dailyLog.Logs.Content : ReadFile(dailyLog.Logs.Path);
+                                                                                <text>@((MarkupString)dailyLog.Logs.Content)</text>
                                                                             }
+                                                                            catch (Exception ex)
+                                                                            {
+                                                                                <text>@ex.Message</text>
+                                                                            }
+                                                                        }
 
-                                                                        </p>
-                                                                    </div>
+                                                                    </p>
                                                                 </div>
-                                                            }
+                                                            </div>
                                                         </BSCard>
                                                     </BSCollapse>
                                                 </BSCard>
@@ -83,13 +85,13 @@
                                         <div class="col-auto">
                                             @if (IsStreaming)
                                             {
-                                                <button class="btn btn-danger btn-sm" type="button" @onclick="@((e)=>StopStreamLog())"><i class="fa fa-stop" ></i> @Localizer["Stop"]</button>
+                                                <button class="btn btn-danger btn-sm" type="button" @onclick="@((e)=>StopStreamLog())"><i class="fa fa-stop"></i> @Localizer["Stop"]</button>
                                             }
                                             else
                                             {
                                                 <button class="btn btn-success btn-sm" type="button" @onclick="@((e)=>StartLogStream())"><i class="fa fa-play"></i> @Localizer["Start"]</button>
                                             }
-                                            <button class="btn btn-secondary btn-sm" type="button" @onclick="@((e)=>ClearStreamLog())"><i class="fa fa-brush" ></i> @Localizer["Clear"]</button>
+                                            <button class="btn btn-secondary btn-sm" type="button" @onclick="@((e)=>ClearStreamLog())"><i class="fa fa-brush"></i> @Localizer["Clear"]</button>
                                         </div>
                                     </div>
                                     <div class="real-time-output">
@@ -97,12 +99,12 @@
                                     </div>
                                 </BSTabContent>
                             </BSTab>
-                     
+
                         </BSTabList>
-                        <BSTabSelectedContent/>
+                        <BSTabSelectedContent />
                     </BSTabGroup>
 
-             
+
 
 
                 </div>

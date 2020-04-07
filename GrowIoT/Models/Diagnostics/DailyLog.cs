@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace GrowIoT.Models.Diagnostics
 {
@@ -7,7 +6,7 @@ namespace GrowIoT.Models.Diagnostics
     {
         public bool IsOpen { get; set; }
         public DateTime Date { get; set; }
-        public List<DiagnosticLog> Logs { get; set; }
+        public DiagnosticLog Logs { get; set; }
     }
 
     public class DiagnosticLog
