@@ -32,6 +32,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Quartz.Impl;
 using Serilog;
+using Syncfusion.Blazor;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace GrowIoT
@@ -49,6 +50,9 @@ namespace GrowIoT
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            //Register Syncfusion license
+            Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("MjM2MzIzQDMxMzgyZTMxMmUzMFlTVkFONXl6ZlRac1BLRlYxSnFSMFYyUzV6L2xaVUdwNXdqYjlURlMvcG89");
+
             services.AddSingleton<ISqlProvider<SqliteConnection>, SqLiteProvider>();
             services.AddDbContextPool<GrowDbContext>((provider, builder) => builder.UseSqlite(provider.GetService<ISqlProvider<SqliteConnection>>().GetConnection()));
             services.AddScoped<IGrowDataContext>(provider => provider.GetRequiredService<GrowDbContext>());
@@ -85,24 +89,9 @@ namespace GrowIoT
             services.AddBlazoredToast();
             services.AddScoped<IGrowboxManager, GrowboxManager>();
             services.AddLocalization(opts => opts.ResourcesPath = "Resources");
-            services.AddHealthChecks().AddCheck("ping", () =>
-            {
-                try
-                {
-                    using var ping = new Ping();
-                    var reply = ping.Send("www.google.com");
+            services.AddGrowHealthChecks();
+            services.AddSyncfusionBlazor();
 
-                    if (reply == null)
-                        return HealthCheckResult.Unhealthy();
-
-                    return reply.Status != IPStatus.Success ? HealthCheckResult.Unhealthy() :
-                        reply.RoundtripTime > 100 ? HealthCheckResult.Degraded() : HealthCheckResult.Healthy();
-                }
-                catch
-                {
-                    return HealthCheckResult.Unhealthy();
-                }
-            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

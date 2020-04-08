@@ -33,6 +33,7 @@
     <PackageReference Include="Quartz" Version="3.0.7" />
     <PackageReference Include="Serilog.AspNetCore" Version="3.2.0" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlcipher" Version="2.0.2" />
+    <PackageReference Include="Syncfusion.Blazor" Version="18.1.0.43" />
     <PackageReference Include="System.Device.Gpio" Version="1.0.0" />
     <PackageReference Include="System.Linq.Dynamic.Core" Version="1.0.23" />
   </ItemGroup>

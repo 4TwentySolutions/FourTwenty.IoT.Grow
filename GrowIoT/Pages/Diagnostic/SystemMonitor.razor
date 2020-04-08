@@ -1,0 +1,57 @@
+﻿@page "/diagnostic/monitor"
+@using Microsoft.Extensions.Localization
+@inherits BaseGrowComponent
+@attribute [Authorize]
+@inject IStringLocalizer<AppResources> Localizer
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h1>@Localizer["System monitor"]</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><NavLink href="/">@Localizer["Home"]</NavLink></li>
+                    <li class="breadcrumb-item active" aria-current="page">@Localizer["System monitor"]</li>
+                </ol>
+            </nav>
+            <div class="card mt-4">
+                <div class="card-body">
+                    @if (IsLoading)
+                    {
+                        <div class="spinner-border mx-auto d-block" role="status">
+                            <span class="sr-only">@Localizer["Loading"]...</span>
+                        </div>
+                    }
+                    <div class="row">
+                        <div class="col-12 col-lg-6">
+                            <h3>@Localizer["CPU usage by current process"]</h3>
+
+                            <SfCircularGauge @ref="CpuGauge">
+                                <CircularGaugeAxes>
+                                    <CircularGaugeAxis Radius="60%" StartAngle="270" EndAngle="90">
+                                        <CircularGaugeAxisLineStyle Width="5">
+                                        </CircularGaugeAxisLineStyle>
+                                        <CircularGaugePointers>
+                                            <CircularGaugePointer Value="@CpuUsageByCurrentProcess">
+                                            </CircularGaugePointer>
+                                        </CircularGaugePointers>
+                                    </CircularGaugeAxis>
+                                </CircularGaugeAxes>
+                            </SfCircularGauge>
+                        </div>
+                        <div class="col-12 col-lg-6">
+                            <h3>@Localizer["RAM usage by current process"]</h3>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <VersionDisplay />
+</div>
+
