@@ -37,6 +37,7 @@ namespace GrowIoT.Pages.Diagnostic
             }
             CpuUsageByCurrentProcess = await GetCpuUsageForProcess();
             Metrics = MemoryMetricsClient.GetMetrics();
+            await CpuGauge.SetPointerValue(0,0,CpuUsageByCurrentProcess);
             await base.OnInitializedAsync();
         }
 
@@ -48,8 +49,8 @@ namespace GrowIoT.Pages.Diagnostic
                 Metrics = MemoryMetricsClient.GetMetrics();
                 var newUsage = await GetCpuUsageForProcess();
                 CpuUsageByCurrentProcess = newUsage == 0 ? CpuUsageByCurrentProcess : newUsage;
-                await CpuGauge.SetPointerValue(0, 0, CpuUsageByCurrentProcess);
                 await InvokeAsync(StateHasChanged);
+                await CpuGauge.SetPointerValue(0,0,CpuUsageByCurrentProcess);
             }
             catch (Exception ex)
             {
