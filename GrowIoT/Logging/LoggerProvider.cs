@@ -18,6 +18,9 @@ namespace GrowIoT.Logging
                 .Enrich.WithProperty("Environment", environment)
                 .MinimumLevel.Verbose()
                 .WriteTo.Sink(RealTimeSink)
+                #if DebugLocalWin || DEBUG
+                .WriteTo.Console(outputTemplate: outputTemplate)
+                #endif                
                 .WriteTo.File(logFilePath, LogEventLevel.Verbose, rollingInterval: RollingInterval.Day,
                     fileSizeLimitBytes: 50000000, outputTemplate: outputTemplate);
         }
