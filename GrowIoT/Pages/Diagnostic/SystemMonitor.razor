@@ -29,22 +29,34 @@
                     <div class="row">
                         <div class="col-12 col-lg-6">
                             <h3>@Localizer["CPU usage by current process"]</h3>
+                            <div class="d-flex flex-column justify-content-center align-content-center">
+                                <SfCircularGauge @ref="CpuGauge"
+                                                 Width="100%"
+                                                 Height="450px">
+                                    <CircularGaugeAxes>
+                                        <CircularGaugeAxis Radius="60%" StartAngle="270" EndAngle="90">
+                                            <CircularGaugeAxisLineStyle Width="5">
+                                            </CircularGaugeAxisLineStyle>
+                                            <CircularGaugePointers>
+                                                <CircularGaugePointer Value="@CpuUsageByCurrentProcess">
+                                                </CircularGaugePointer>
+                                            </CircularGaugePointers>
+                                        </CircularGaugeAxis>
+                                    </CircularGaugeAxes>
+                                </SfCircularGauge>
+                                <div class="text-center position-absolute" style="top: 15%;left: 50%;transform: translate(-50%, -50%);">
+                                    <b>CPU:</b> @CpuUsageByCurrentProcess.ToString("N2")%
+                                </div>
+                            </div>
 
-                            <SfCircularGauge @ref="CpuGauge">
-                                <CircularGaugeAxes>
-                                    <CircularGaugeAxis Radius="60%" StartAngle="270" EndAngle="90">
-                                        <CircularGaugeAxisLineStyle Width="5">
-                                        </CircularGaugeAxisLineStyle>
-                                        <CircularGaugePointers>
-                                            <CircularGaugePointer Value="@CpuUsageByCurrentProcess">
-                                            </CircularGaugePointer>
-                                        </CircularGaugePointers>
-                                    </CircularGaugeAxis>
-                                </CircularGaugeAxes>
-                            </SfCircularGauge>
                         </div>
                         <div class="col-12 col-lg-6">
                             <h3>@Localizer["RAM usage by current process"]</h3>
+                            <div class="text-center">
+                                <span><b>Total:</b> @Metrics?.Total Mb</span><br />
+                                <span><b>Used:</b> @Metrics?.Used Mb</span><br />
+                                <span><b>Free:</b> @Metrics?.Free Mb</span><br />
+                            </div>
                         </div>
                     </div>
 

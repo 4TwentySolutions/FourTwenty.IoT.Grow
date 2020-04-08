@@ -77,6 +77,7 @@ namespace GrowIoT
             services.AddSingleton<IIoTConfigService, IoTConfigService>();
             services.AddSingleton<IJobsService, JobsService>();
             services.AddSingleton<IHubService, HubService>();
+            services.AddSingleton<IMemoryMetricsClient, MemoryMetricsClient>();
             services.AddScoped<IHtmlSanitizer, HtmlSanitizer>(x =>
             {
                 // Configure sanitizer rules as needed here.
