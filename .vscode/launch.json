@@ -18,7 +18,7 @@
                         "-ssh",
                         "-pw",
                         "123456Qq@",
-                        "pi@raspberrypi.local"
+                        "pi@192.168.0.105"
                     ],
                     "debuggerPath": "~/vsdbg/vsdbg"
                 }

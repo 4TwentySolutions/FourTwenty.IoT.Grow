@@ -15,7 +15,7 @@ namespace GrowIoT
     {
         public static async Task Main(string[] args)
         {
-            CreateHostBuilder(args).Build().SeedIdentity().Run();
+            CreateHostBuilder(args).Build().ApplyMigrations().SeedIdentity().Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args)
@@ -28,8 +28,8 @@ namespace GrowIoT
 
 
             var hostUrl = configuration["hosturl"];
-            //if (string.IsNullOrEmpty(hostUrl))
-            //    hostUrl = $"http://0.0.0.0:5000";
+            if (string.IsNullOrEmpty(hostUrl))
+               hostUrl = $"http://0.0.0.0:5000";
 
 
             return Host.CreateDefaultBuilder(args)

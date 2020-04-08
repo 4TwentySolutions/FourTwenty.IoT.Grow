@@ -20,12 +20,19 @@ using GrowIoT.ViewModels;
 using Newtonsoft.Json;
 using Quartz;
 using Iot.Device.DHTxx;
+using Microsoft.Extensions.Logging;
 
 namespace GrowIoT.Services
 {
     public class IoTConfigService : IIoTConfigService
     {
         private IList<IModule> _modules;
+        private readonly ILogger<IoTConfigService> _logger;
+
+        public IoTConfigService(ILogger<IoTConfigService> logger)
+        {
+            _logger = logger;
+        }
 
         public void InitConfig(IScheduler scheduler, GrowBoxViewModel config, GpioController controller = null)
         {
@@ -58,39 +65,41 @@ namespace GrowIoT.Services
 
                 if (module.Type == ModuleType.HumidityAndTemperature)
                 {
-
+#if DebugLocalWin
                     mod = new MockModule(rules, new[] { module.Pins.FirstOrDefault() })
                     {
                         Id = 2,
                         Name = nameof(MockModule)
                     };
-
-                    //mod = new DhtSensor(module.Pins.FirstOrDefault(), controller, rules)
-                    //{
-                    //    Id = module.Id,
-                    //    Name = module.Name
-                    //};
+#else
+                    mod = new DhtSensor(module.Pins.FirstOrDefault(), controller, rules)
+                    {
+                        Id = module.Id,
+                        Name = module.Name
+                    };
+#endif
 
                 }
 
                 if (module.Type == ModuleType.Relay)
                 {
-
+#if DebugLocalWin
                     mod = new MockModule(rules, new[] { module.Pins.FirstOrDefault() })
                     {
                         Id = 1,
                         Name = nameof(MockModule)
                     };
-
-                    //if (module.Pins?.Length >= 2)
-                    //{
-                    //    mod = new Relay(module.Pins, controller)
-                    //    {
-                    //        Id = module.Id,
-                    //        Name = module.Name,
-                    //        Rules = rules
-                    //    };
-                    //}
+#else
+                    if (module.Pins?.Length >= 2)
+                    {
+                        mod = new Relay(module.Pins, controller)
+                        {
+                            Id = module.Id,
+                            Name = module.Name,
+                            Rules = rules
+                        };
+                    }
+#endif
                 }
 
                 switch (mod)
@@ -112,7 +121,7 @@ namespace GrowIoT.Services
         {
             if (sender is IoTComponent component)
             {
-                //Console.WriteLine($@"{component.Name} - {(e.State == RelayState.Opened ? "ON" : "OFF")}");
+                _logger.LogWarning($@"{component.Name} - {(e.State == RelayState.Opened ? "ON" : "OFF")}");
             }
         }
 
@@ -120,7 +129,7 @@ namespace GrowIoT.Services
         {
             if (sender is IoTComponent component)
             {
-                //Console.WriteLine($@"{component.Name} - {e.Data}");
+                _logger.LogWarning($@"{component.Name} - {e.Data}");
             }
         }
 

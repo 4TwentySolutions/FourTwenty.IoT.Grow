@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Device.Gpio;
 using System.Threading.Tasks;
 using FourTwenty.IoT.Server.Interfaces;
 using GrowIoT.Interfaces;
@@ -14,9 +15,6 @@ namespace GrowIoT.Extensions
     {
         public static IApplicationBuilder AddIoT(this IApplicationBuilder applicationBuilder, IServiceProvider serviceProvider, ILogger logger)
         {
-            logger.LogInformation("DB init");
-            serviceProvider.GetService<IGrowDataContext>().InitDb().ConfigureAwait(false).GetAwaiter().GetResult();
-            logger.LogInformation("DB init finished\nStarting IOT initialization");
             serviceProvider.InitIoT(logger).ConfigureAwait(false).GetAwaiter().GetResult();
             logger.LogInformation("IOT initialization finished");
             return applicationBuilder;
@@ -35,15 +33,20 @@ namespace GrowIoT.Extensions
                 logger.LogInformation($"{nameof(InitIoT)} GrowBox name - {growBox.Title}");
                 var scheduler = await StdSchedulerFactory.GetDefaultScheduler();
 
+#if DebugLocalWin
                 logger.LogInformation($"{nameof(InitIoT)} Iot config init");
                 configService.InitConfig(scheduler, growBox);
                 logger.LogInformation($"{nameof(InitIoT)} Iot config init finished");
                 await jobsService.StartJobs(configService.GetModules());
                 logger.LogInformation($"{nameof(InitIoT)} Jobs started");
-
-                //using GpioController controller = new GpioController(PinNumberingScheme.Logical);
-                //configService.InitConfig(scheduler, growBox, controller);
-                //await jobsService.StartJobs(configService.GetModules());
+#else
+                using GpioController controller = new GpioController(PinNumberingScheme.Logical);
+                logger.LogInformation($"{nameof(InitIoT)} Iot config init");
+                configService.InitConfig(scheduler, growBox, controller);
+                logger.LogInformation($"{nameof(InitIoT)} Iot config init finished");
+                await jobsService.StartJobs(configService.GetModules());
+                logger.LogInformation($"{nameof(InitIoT)} Jobs started");
+#endif
             }
             catch (Exception e)
             {

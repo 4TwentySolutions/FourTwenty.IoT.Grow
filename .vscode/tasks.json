@@ -17,7 +17,7 @@
         {
             "label": "publish",            
             "windows": {
-                "command": "bash -c 'rsync -rvuzp ${command:extension.vscode-wsl-workspaceFolder}/bin/linux-arm/publish/ pi@192.168.0.104:~/${workspaceFolderBasename}'",
+                "command": "bash -c 'rsync -rvuzp ${command:extension.vscode-wsl-workspaceFolder}/bin/linux-arm/publish/ pi@192.168.0.105:~/${workspaceFolderBasename}'",
                 "type": "shell",
             }
         }

@@ -1,0 +1,10 @@
+default rapsberry pi database location
+
+ -linux: /home/pi/.local/share/database.db
+ -windows: C:\Users\YOUR_USER\AppData\Local\database.db
+ 
+ default rapsberry pi logs location
+
+ -linux: /home/pi/.local/share/grow-logs
+ -windows: C:\Users\YOUR_USER\AppData\Local\grow-logs
+ 
