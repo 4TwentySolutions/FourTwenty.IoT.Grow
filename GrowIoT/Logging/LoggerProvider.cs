@@ -7,7 +7,7 @@ namespace GrowIoT.Logging
     public static class LoggerProvider
     {
         private static RealTimeSink _realTimeSink;
-        public static RealTimeSink RealTimeSink => _realTimeSink ??= new RealTimeSink();
+        public static RealTimeSink RealTimeSink => _realTimeSink ??= new RealTimeSink(null, null, restrictedToMinimumLevel: LogEventLevel.Information);
         public static LoggerConfiguration GetLoggerConfiguration(string environment)
         {
 

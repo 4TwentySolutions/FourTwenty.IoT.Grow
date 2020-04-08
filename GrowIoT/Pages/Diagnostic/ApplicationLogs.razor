@@ -50,19 +50,9 @@
                                                             <div class="p-4 mt-4 bg-dark text-white">
                                                                 <span class="h3 mb-3">@dailyLog.Logs.FileName</span>
                                                                 <div class="overflow-auto" style="max-height: 350px;">
+                                                                    <button class="btn btn-secondary my-3" type="button" @onclick="@((e)=>LoadFile(dailyLog))">@Localizer["Load in page (be aware, it might took your memory)"]</button>
                                                                     <p class="text-monospace text-white">
-                                                                        @{
-                                                                            try
-                                                                            {
-                                                                                dailyLog.Logs.Content = !string.IsNullOrEmpty(dailyLog.Logs.Content) ? dailyLog.Logs.Content : ReadFile(dailyLog.Logs.Path);
-                                                                                <text>@((MarkupString)dailyLog.Logs.Content)</text>
-                                                                            }
-                                                                            catch (Exception ex)
-                                                                            {
-                                                                                <text>@ex.Message</text>
-                                                                            }
-                                                                        }
-
+                                                                        @((MarkupString)dailyLog.Logs.Content)
                                                                     </p>
                                                                 </div>
                                                             </div>

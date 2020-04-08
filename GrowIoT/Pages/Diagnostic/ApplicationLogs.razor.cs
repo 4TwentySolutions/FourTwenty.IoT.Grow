@@ -23,15 +23,15 @@ namespace GrowIoT.Pages.Diagnostic
         [Inject] protected IJSRuntime JSRuntime { get; private set; }
         [Inject] protected ILogger<ApplicationLogs> Logger { get; private set; }
         protected List<DiagnosticDailyLog> LogsGroups { get; set; }
-        protected string StringLogs { get; set; } = string.Empty;
-        protected MarkupString RealTimeLogs => (MarkupString)StringLogs;
+        protected MarkupString RealTimeLogs => (MarkupString)LogBuilder.ToString();
+
+        private StringBuilder LogBuilder { get; } = new StringBuilder();
         protected bool IsStreaming { get; set; }
 
         private Timer _timer;
 
         public ApplicationLogs()
         {
-
             LoggerProvider.RealTimeSink.LogReceived -= RealTimeSinkOnLogReceived;
         }
 
@@ -85,7 +85,7 @@ namespace GrowIoT.Pages.Diagnostic
 
         private void ClearStreamLog()
         {
-            StringLogs = string.Empty;
+            LogBuilder.Clear();
             StateHasChanged();
         }
 
@@ -98,11 +98,18 @@ namespace GrowIoT.Pages.Diagnostic
 
         private void RealTimeSinkOnLogReceived(object? sender, LogEventArgs e)
         {
-            StringLogs += $"{e.LogEvent.RenderMessage()}<br/>";
+            LogBuilder.Append($"{e.LogEvent.RenderMessage()}<br/>");
         }
+
+
+        private void LoadFile(DiagnosticDailyLog dailylog)
+        {
+            dailylog.Logs.Content = ReadFile(dailylog.Logs.Path);
+            StateHasChanged();
+        }
+
         private string ReadFile(string sourceFilePath)
         {
-
             using FileStream sourceStream = File.Open(sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             using StreamReader reader = new StreamReader(sourceStream);
             return reader.ReadToEnd().Replace("\n", "<br/>");

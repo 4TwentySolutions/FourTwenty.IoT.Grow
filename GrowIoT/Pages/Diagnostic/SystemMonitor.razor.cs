@@ -40,7 +40,7 @@ namespace GrowIoT.Pages.Diagnostic
             await base.OnInitializedAsync();
         }
 
-
+        
         private async void DisplayTimerElapsed(object sender, ElapsedEventArgs e)
         {
             try
