@@ -17,7 +17,7 @@ using Microsoft.JSInterop;
 
 namespace GrowIoT.Pages.Diagnostic
 {
-    public partial class ApplicationLogs
+    public partial class ApplicationLogs : IDisposable
     {
 
         [Inject] protected IJSRuntime JSRuntime { get; private set; }
@@ -32,7 +32,6 @@ namespace GrowIoT.Pages.Diagnostic
 
         public ApplicationLogs()
         {
-            LoggerProvider.RealTimeSink.LogReceived -= RealTimeSinkOnLogReceived;
         }
 
 
@@ -114,6 +113,38 @@ namespace GrowIoT.Pages.Diagnostic
             using StreamReader reader = new StreamReader(sourceStream);
             return reader.ReadToEnd().Replace("\n", "<br/>");
         }
+
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    StopStreamLog();
+                    if (_timer != null)
+                    {
+                        _timer.Stop();
+                        _timer.Dispose();
+                        _timer = null;
+                    }
+                }
+
+
+                disposedValue = true;
+            }
+        }
+
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+        }
+        #endregion
 
 
     }

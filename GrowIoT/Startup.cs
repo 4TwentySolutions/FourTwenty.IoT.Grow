@@ -34,6 +34,7 @@ using Quartz.Impl;
 using Serilog;
 using Syncfusion.Blazor;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
+using Microsoft.AspNetCore.Components.Server.Circuits;
 
 namespace GrowIoT
 {
@@ -92,6 +93,8 @@ namespace GrowIoT
             services.AddLocalization(opts => opts.ResourcesPath = "Resources");
             services.AddGrowHealthChecks();
             services.AddSyncfusionBlazor();
+            services.AddSingleton<CircuitHandler>(new CircuitHandlerService());
+
 
         }
 

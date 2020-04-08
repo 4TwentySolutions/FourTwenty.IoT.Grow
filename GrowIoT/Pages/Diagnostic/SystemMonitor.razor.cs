@@ -10,7 +10,7 @@ using Syncfusion.Blazor.CircularGauge;
 
 namespace GrowIoT.Pages.Diagnostic
 {
-    public partial class SystemMonitor
+    public partial class SystemMonitor : IDisposable
     {
 
         #region DI
@@ -37,11 +37,11 @@ namespace GrowIoT.Pages.Diagnostic
             }
             CpuUsageByCurrentProcess = await GetCpuUsageForProcess();
             Metrics = MemoryMetricsClient.GetMetrics();
-            await CpuGauge.SetPointerValue(0,0,CpuUsageByCurrentProcess);
+            await CpuGauge.SetPointerValue(0, 0, CpuUsageByCurrentProcess);
             await base.OnInitializedAsync();
         }
 
-        
+
         private async void DisplayTimerElapsed(object sender, ElapsedEventArgs e)
         {
             try
@@ -50,7 +50,7 @@ namespace GrowIoT.Pages.Diagnostic
                 var newUsage = await GetCpuUsageForProcess();
                 CpuUsageByCurrentProcess = newUsage == 0 ? CpuUsageByCurrentProcess : newUsage;
                 await InvokeAsync(StateHasChanged);
-                await CpuGauge.SetPointerValue(0,0,CpuUsageByCurrentProcess);
+                await CpuGauge.SetPointerValue(0, 0, CpuUsageByCurrentProcess);
             }
             catch (Exception ex)
             {
@@ -71,5 +71,35 @@ namespace GrowIoT.Pages.Diagnostic
             var cpuUsageTotal = cpuUsedMs / (Environment.ProcessorCount * totalMsPassed);
             return cpuUsageTotal * 100;
         }
+
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    if (_timer != null)
+                    {
+                        _timer.Stop();
+                        _timer.Dispose();
+                        _timer = null;
+
+                    }
+                }
+
+                disposedValue = true;
+            }
+        }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+        }
+        #endregion
     }
 }
