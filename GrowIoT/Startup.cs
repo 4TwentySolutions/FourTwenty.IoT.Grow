@@ -54,9 +54,14 @@ namespace GrowIoT
             //Register Syncfusion license
             Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("MjM2MzIzQDMxMzgyZTMxMmUzMFlTVkFONXl6ZlRac1BLRlYxSnFSMFYyUzV6L2xaVUdwNXdqYjlURlMvcG89");
 
-            services.AddSingleton<ISqlProvider<SqliteConnection>, SqLiteProvider>();
-            services.AddDbContextPool<GrowDbContext>((provider, builder) => builder.UseSqlite(provider.GetService<ISqlProvider<SqliteConnection>>().GetConnection()));
+            services.AddSingleton<SqLiteProvider<GrowSqlConnectionAsync>>();
+            services.AddSingleton<SqLiteProvider<HistorySqlConnectionAsync>>();
+
+            services.AddDbContextPool<GrowDbContext>((provider, builder) => builder.UseSqlite(provider.GetService<SqLiteProvider<GrowSqlConnectionAsync>>().GetConnection()));
+            services.AddDbContextPool<HistoryDbContext>((provider, builder) => builder.UseSqlite(provider.GetService<SqLiteProvider<HistorySqlConnectionAsync>>().GetConnection()));
+
             services.AddScoped<IGrowDataContext>(provider => provider.GetRequiredService<GrowDbContext>());
+            services.AddScoped<IHistoryDataContext>(provider => provider.GetRequiredService<HistoryDbContext>());
 
             services.AddIdentity<IdentityUser, IdentityRole>(options =>
                 {
@@ -95,6 +100,8 @@ namespace GrowIoT
             services.AddSyncfusionBlazor();
             services.AddSingleton<CircuitHandler>(new CircuitHandlerService());
 
+            services.AddScoped<IHistoryService, HistoryService>();
+
 
         }
 
@@ -116,7 +123,7 @@ namespace GrowIoT
                 .GetService<IOptions<RequestLocalizationOptions>>().Value;
             app.UseRequestLocalization(localizationOptions);
             app.UseRouting();
-            
+
             app.UseAuthentication();
             app.UseAuthorization();
 

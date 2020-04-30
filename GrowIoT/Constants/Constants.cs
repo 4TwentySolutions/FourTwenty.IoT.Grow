@@ -7,8 +7,12 @@ namespace GrowIoT.Constants
     {
         
 
-        public static string ConfigFileName = "config.txt";
-        public static string ConfigPath = Path.Combine(Directory.GetCurrentDirectory(), ConfigFileName);
+        //public static string ConfigFileName = "config.txt";
+        // public static string ConfigPath = Path.Combine(Directory.GetCurrentDirectory(), ConfigFileName);
+
+        public static string HistoryPath =
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                $"{nameof(GrowIoT)}-history");
 
         public static string LogsDirectory =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),

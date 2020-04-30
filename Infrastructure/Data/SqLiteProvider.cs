@@ -4,7 +4,7 @@ using Microsoft.Data.Sqlite;
 
 namespace Infrastructure.Data
 {
-    public class SqLiteProvider : ISqlProvider<SqliteConnection>, IDisposable
+    public class SqLiteProvider<T> : ISqlProvider<SqliteConnection>, IDisposable where T : SqliteConnection, new()
     {
         private bool _disposed;
         private SqliteConnection _asyncConnection;
@@ -17,9 +17,9 @@ namespace Infrastructure.Data
             return connection;
         }
 
-        private GrowSqlConnectionAsync CreateConnection()
+        private T CreateConnection()
         {
-            var connection = new GrowSqlConnectionAsync();
+            T connection = new T();
 #if NETSTANDARD2_1
          connection.ConnectionString = new SqliteConnectionStringBuilder(connection.ConnectionString)
             { Password = Constants.SqlPassword }

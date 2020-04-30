@@ -26,10 +26,11 @@ namespace GrowIoT
             .AddCommandLine(args)
             .Build();
 
-
             var hostUrl = configuration["hosturl"];
+#if !DebugLocalWin
             if (string.IsNullOrEmpty(hostUrl))
                hostUrl = $"http://0.0.0.0:5000";
+#endif
 
 
             return Host.CreateDefaultBuilder(args)

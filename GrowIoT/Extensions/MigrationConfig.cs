@@ -27,6 +27,7 @@ namespace GrowIoT.Extensions
             {
                 Log.Logger.Information("DB init");
                 serviceScope.ServiceProvider.GetService<IGrowDataContext>().InitDb().ConfigureAwait(false).GetAwaiter().GetResult();
+                serviceScope.ServiceProvider.GetService<IHistoryDataContext>().InitDb().ConfigureAwait(false).GetAwaiter().GetResult();
                 Log.Logger.Information("DB init finished\nStarting IOT initialization");
                 //if (!serviceScope.ServiceProvider.GetService<GrowDbContext>().AllMigrationsApplied())
                 //{

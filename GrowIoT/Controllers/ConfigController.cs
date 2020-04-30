@@ -63,8 +63,8 @@ namespace GrowIoT.Controllers
         {
             try
             {
-                var currentConfigVersion = await _ioTConfigService.UpdateConfig(model);
-                if (currentConfigVersion <= 0) return NoContent();
+                var currentConfigVersion = -1;//await _ioTConfigService.UpdateConfig(model);
+               // if (currentConfigVersion <= 0) return NoContent();
 
                 await _jobsService.StopJobs();
 

@@ -3,6 +3,7 @@ using System.Device.Gpio;
 using System.Threading.Tasks;
 using FourTwenty.IoT.Server.Interfaces;
 using GrowIoT.Interfaces;
+using GrowIoT.Services;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +27,7 @@ namespace GrowIoT.Extensions
 
                 var configService = serviceProvider.GetService<IIoTConfigService>();
                 var jobsService = serviceProvider.GetService<IJobsService>();
+                var historyService = serviceProvider.GetService<IHistoryService>();
 
                 var growBoxManager = serviceProvider.GetService<IGrowboxManager>();
                 var growBox = await growBoxManager.GetBoxWithRules();
@@ -33,20 +35,32 @@ namespace GrowIoT.Extensions
                 logger.LogInformation($"{nameof(InitIoT)} GrowBox name - {growBox.Title}");
                 var scheduler = await StdSchedulerFactory.GetDefaultScheduler();
 
-#if DebugLocalWin
                 logger.LogInformation($"{nameof(InitIoT)} Iot config init");
-                configService.InitConfig(scheduler, growBox);
-                logger.LogInformation($"{nameof(InitIoT)} Iot config init finished");
-                await jobsService.StartJobs(configService.GetModules());
-                logger.LogInformation($"{nameof(InitIoT)} Jobs started");
+
+                var initOptions = new ConfigInitOptions
+                {
+                    Scheduler = scheduler,
+                    Config = growBox
+                };
+
+#if DebugLocalWin
+
 #else
                 using GpioController controller = new GpioController(PinNumberingScheme.Logical);
-                logger.LogInformation($"{nameof(InitIoT)} Iot config init");
-                configService.InitConfig(scheduler, growBox, controller);
-                logger.LogInformation($"{nameof(InitIoT)} Iot config init finished");
+                initOptions.Controller = controller
+#endif
+
+                logger.LogInformation($"{nameof(InitIoT)} Iot config Initialize");
+                configService.Initialize(initOptions);
+                logger.LogInformation($"{nameof(InitIoT)} Iot config Initialize finished");
+
+                logger.LogInformation($"{nameof(InitIoT)} History service Initialize");
+                historyService.Initialize(new HistoryInitOptions(configService.GetModules()));
+                logger.LogInformation($"{nameof(InitIoT)} History service Initialize finished");
+
                 await jobsService.StartJobs(configService.GetModules());
                 logger.LogInformation($"{nameof(InitIoT)} Jobs started");
-#endif
+
             }
             catch (Exception e)
             {

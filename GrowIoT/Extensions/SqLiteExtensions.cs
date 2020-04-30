@@ -16,7 +16,21 @@ namespace GrowIoT.Extensions
             if (result && seed)
             {
                 //TODO add seed data
+            }            
+        }
+
+        public static async Task InitDb(this IHistoryDataContext context, bool seed = false, int seedCount = 5)
+        {
+            if (!(context is GrowDbContext dbContext))
+                return;
+
+            var result = await dbContext.Database.EnsureCreatedAsync();
+
+            if (result && seed)
+            {
+                //TODO add seed data
             }
         }
     }
+
 }

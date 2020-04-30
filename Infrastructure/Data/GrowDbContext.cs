@@ -44,16 +44,6 @@ namespace Infrastructure.Data
             modelBuilder.Entity<GrowBox>().HasData(new GrowBox() { Id = Constants.BoxId, Title = "My GrowBox" });
         }
 
-        public Task BeginTransactionAsync(CancellationToken token = new CancellationToken())
-        {
-            throw new NotImplementedException();
-        }
-
-        public void BeginTransaction()
-        {
-            throw new NotImplementedException();
-        }
-
         public void Commit()
         {
             SaveChanges();
@@ -62,6 +52,18 @@ namespace Infrastructure.Data
         public async Task CommitAsync(CancellationToken token = new CancellationToken())
         {
             await SaveChangesAsync(token);
+        }
+
+        #region Not Implemented
+
+        public Task BeginTransactionAsync(CancellationToken token = new CancellationToken())
+        {
+            throw new NotImplementedException();
+        }
+
+        public void BeginTransaction()
+        {
+            throw new NotImplementedException();
         }
 
         public void Rollback()
@@ -73,5 +75,7 @@ namespace Infrastructure.Data
         {
             throw new NotImplementedException();
         }
+
+        #endregion
     }
 }

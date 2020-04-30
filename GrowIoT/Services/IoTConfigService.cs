@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Device.Gpio;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using FourTwenty.IoT.Connect.Constants;
@@ -9,18 +8,25 @@ using FourTwenty.IoT.Connect.Dto;
 using FourTwenty.IoT.Server.Components;
 using FourTwenty.IoT.Connect.Interfaces;
 using FourTwenty.IoT.Connect.Models;
-using FourTwenty.IoT.Server;
-using FourTwenty.IoT.Server.Components.Relays;
-using FourTwenty.IoT.Server.Components.Sensors;
-using FourTwenty.IoT.Server.Jobs;
 using FourTwenty.IoT.Server.Rules;
 using GrowIoT.Interfaces;
 using GrowIoT.Models.Tests;
 using GrowIoT.ViewModels;
 using Newtonsoft.Json;
 using Quartz;
-using Iot.Device.DHTxx;
 using Microsoft.Extensions.Logging;
+using Infrastructure.Interfaces;
+using Infrastructure.Entities;
+using Microsoft.Extensions.DependencyInjection;
+
+#if !DebugLocalWin
+    using System.IO;
+    using FourTwenty.IoT.Server;
+    using FourTwenty.IoT.Server.Components.Relays;
+    using FourTwenty.IoT.Server.Components.Sensors;
+    using FourTwenty.IoT.Server.Jobs;
+    using Iot.Device.DHTxx;
+#endif
 
 namespace GrowIoT.Services
 {
@@ -29,108 +35,11 @@ namespace GrowIoT.Services
         private IList<IModule> _modules;
         private readonly ILogger<IoTConfigService> _logger;
 
+        public bool IsInitialized { get; set; }
+
         public IoTConfigService(ILogger<IoTConfigService> logger)
         {
             _logger = logger;
-        }
-
-        public void InitConfig(IScheduler scheduler, GrowBoxViewModel config, GpioController controller = null)
-        {
-            if (config?.Modules == null)
-                return;
-
-            _modules = new List<IModule>();
-
-            foreach (var module in config.Modules)
-            {
-                IoTComponent mod = null;
-                var rules = new List<IRule>();
-
-                foreach (var moduleRule in module.Rules)
-                {
-                    if (moduleRule.RuleType == RuleType.CronRule)
-                    {
-                        var ruleData = JsonConvert.DeserializeObject<CronRuleData>(moduleRule.RuleContent) ?? new CronRuleData();
-
-                        var cronRule = new CronRule(ruleData.Job, ruleData.CronExpression, scheduler)
-                        {
-                            Period = TimeSpan.FromSeconds(ruleData.Delay.GetHashCode()),
-                            Pin = moduleRule.Pin
-                        };
-
-                        rules.Add(cronRule);
-                    }
-                }
-
-
-                if (module.Type == ModuleType.HumidityAndTemperature)
-                {
-#if DebugLocalWin
-                    mod = new MockModule(rules, new[] { module.Pins.FirstOrDefault() })
-                    {
-                        Id = 2,
-                        Name = nameof(MockModule)
-                    };
-#else
-                    mod = new DhtSensor(module.Pins.FirstOrDefault(), controller, rules)
-                    {
-                        Id = module.Id,
-                        Name = module.Name
-                    };
-#endif
-
-                }
-
-                if (module.Type == ModuleType.Relay)
-                {
-#if DebugLocalWin
-                    mod = new MockModule(rules, new[] { module.Pins.FirstOrDefault() })
-                    {
-                        Id = 1,
-                        Name = nameof(MockModule)
-                    };
-#else
-                    if (module.Pins?.Length >= 2)
-                    {
-                        mod = new Relay(module.Pins, controller)
-                        {
-                            Id = module.Id,
-                            Name = module.Name,
-                            Rules = rules
-                        };
-                    }
-#endif
-                }
-
-                switch (mod)
-                {
-                    case ISensor sens:
-                        sens.DataReceived += SensOnDataReceived;
-                        break;
-                    case IRelay relay:
-                        relay.StateChanged += RelayOnStateChanged;
-                        break;
-                }
-
-                if (mod != null)
-                    _modules.Add(mod);
-            }
-        }
-
-        private void RelayOnStateChanged(object? sender, RelayEventArgs e)
-        {
-            if (sender is IoTComponent component)
-            {
-                _logger.LogWarning($@"{component.Name} - {(e.State == RelayState.Opened ? "ON" : "OFF")}");
-            }
-        }
-
-        private void SensOnDataReceived(object? sender, SensorEventArgs e)
-        {
-            if (sender is IoTComponent component)
-            {
-                _logger.LogWarning($@"{component.Name} - {e.Data}");
-            }
         }
 
         public ConfigDto GetConfig()
@@ -148,8 +57,8 @@ namespace GrowIoT.Services
             try
             {
                 model.CurrentVersion = DateTime.Now.Ticks;
-                var filePath = Constants.Constants.ConfigPath;
-                await File.WriteAllTextAsync(filePath, JsonConvert.SerializeObject(model));
+                //var filePath = Constants.Constants.ConfigPath;
+                // await File.WriteAllTextAsync(filePath, JsonConvert.SerializeObject(model));
                 return model.CurrentVersion;
             }
             catch (Exception e)
@@ -158,5 +67,90 @@ namespace GrowIoT.Services
                 return -1;
             }
         }
+
+        public void Initialize(InitializableOptions options)
+        {
+            if (options is ConfigInitOptions configInitOptions)
+            {
+                if (configInitOptions.Config?.Modules == null)
+                    return;
+
+                _modules = new List<IModule>();
+
+                foreach (var module in configInitOptions.Config.Modules)
+                {
+                    IoTComponent mod = null;
+                    var rules = new List<IRule>();
+
+                    foreach (var moduleRule in module.Rules)
+                    {
+                        if (moduleRule.RuleType == RuleType.CronRule)
+                        {
+                            var ruleData = JsonConvert.DeserializeObject<CronRuleData>(moduleRule.RuleContent) ?? new CronRuleData();
+
+                            var cronRule = new CronRule(ruleData.Job, ruleData.CronExpression, configInitOptions.Scheduler)
+                            {
+                                Period = TimeSpan.FromSeconds(ruleData.Delay.GetHashCode()),
+                                Pin = moduleRule.Pin
+                            };
+
+                            rules.Add(cronRule);
+                        }
+                    }
+
+
+                    if (module.Type == ModuleType.HumidityAndTemperature)
+                    {
+#if DebugLocalWin
+                        mod = new MockModule(rules, new[] { module.Pins.FirstOrDefault() })
+                        {
+                            Id = 2,
+                            Name = nameof(MockModule)
+                        };
+#else
+                    mod = new DhtSensor(module.Pins.FirstOrDefault(), configInitOptions.Controller, rules)
+                    {
+                        Id = module.Id,
+                        Name = module.Name
+                    };
+#endif
+
+                    }
+
+                    if (module.Type == ModuleType.Relay)
+                    {
+#if DebugLocalWin
+                        mod = new MockModule(rules, new[] { module.Pins.FirstOrDefault() })
+                        {
+                            Id = 1,
+                            Name = nameof(MockModule)
+                        };
+#else
+                    if (module.Pins?.Length >= 2)
+                    {
+                        mod = new Relay(module.Pins, configInitOptions.Controller)
+                        {
+                            Id = module.Id,
+                            Name = module.Name,
+                            Rules = rules
+                        };
+                    }
+#endif
+                    }
+
+                    if (mod != null)
+                        _modules.Add(mod);
+                }
+
+                IsInitialized = true;
+            }
+        }
+    }
+
+    public class ConfigInitOptions : InitializableOptions
+    {
+        public IScheduler Scheduler { get; set; }
+        public GrowBoxViewModel Config { get; set; }
+        public GpioController Controller { get; set; } = null;
     }
 }

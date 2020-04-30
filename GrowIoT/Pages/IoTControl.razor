@@ -1,0 +1,54 @@
+﻿@page "/iotcomponents/control/{Id:int}"
+@using Microsoft.Extensions.Localization
+@using Syncfusion.Blazor.Charts
+@inherits BaseGrowComponent
+@attribute [Authorize]
+@inject IStringLocalizer<AppResources> Localizer
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h1>@Localizer["Component control"]</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><NavLink href="/">@Localizer["Home"]</NavLink></li>
+                    <li class="breadcrumb-item active" aria-current="page">@Localizer["Component control"]</li>
+                </ol>
+            </nav>
+            <div class="card mt-4">
+                <div class="card-body">
+                    @if (IsLoading)
+                    {
+                        <div class="spinner-border mx-auto d-block" role="status">
+                            <span class="sr-only">@Localizer["Loading"]...</span>
+                        </div>
+                    }
+                    <div class="row">
+                        <div class="col-12 text-center ">
+                            <h3>@Localizer["History"]</h3>
+                            <div class="d-flex flex-column justify-content-center align-content-center">
+                                <SfChart @ref="HistoryChart"
+                                         Width="100%" 
+                                         Height="450px">
+                                    <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category"/>
+
+                                    <ChartSeriesCollection>
+                                        <ChartSeries DataSource="@HistoryData" XName="X" YName="Y" PointColorMapping="Color" Type="ChartSeriesType.MultiColoredLine"/>
+                                        
+                                    </ChartSeriesCollection>
+                                </SfChart>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

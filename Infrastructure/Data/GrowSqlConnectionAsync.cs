@@ -7,6 +7,12 @@ namespace Infrastructure.Data
         public GrowSqlConnectionAsync() : base($"Filename={Constants.DatabasePath}")
         {
         }
+    }
 
+    public class HistorySqlConnectionAsync : SqliteConnection
+    {
+        public HistorySqlConnectionAsync() : base($"Filename={Constants.HistoryDatabasePath}")
+        {
+        }
     }
 }
