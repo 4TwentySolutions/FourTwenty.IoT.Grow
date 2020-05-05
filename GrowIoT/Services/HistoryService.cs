@@ -9,62 +9,59 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace GrowIoT.Services
 {
     public class HistoryService : IHistoryService
     {
-        private readonly IHistoryDataContext _historyDataContext;
-
+        private readonly IConfiguration _configuration;
+        //private DbContextOptionsBuilder<HistoryDbContext> _optionsBuilder;
+        private SqLiteProvider<HistorySqlConnectionAsync>  _sqlProvider;
         public bool IsInitialized { get; set; }
 
-        public HistoryService(IHistoryDataContext historyDataContext)
+        public HistoryService(IConfiguration configuration, IServiceProvider serviceProvider)
         {
-            _historyDataContext = historyDataContext;
-        }
+            _configuration = configuration;
 
+            var connectionString = _configuration.GetConnectionString("local");
+            _sqlProvider = serviceProvider.GetService<SqLiteProvider<HistorySqlConnectionAsync>>();
 
-
-        private void ConfigInited(object e, EventArgs args)
-        {
-
+            //_optionsBuilder = new DbContextOptionsBuilder<HistoryDbContext>().UseSqlite(_sqlProvider.GetConnection());
         }
 
         private void RelayOnStateChanged(object? sender, RelayEventArgs e)
         {
             if (!(sender is IoTComponent component))
                 return;
+            var _optionsBuilder = new DbContextOptionsBuilder<HistoryDbContext>().UseSqlite(_sqlProvider.GetConnection());
+            using var context = new HistoryDbContext(_optionsBuilder.Options);
 
-
-            //var serviceProvider = _serviceCollection.BuildServiceProvider();
-            //var historyContext = serviceProvider.GetService<IHistoryDataContext>();
-
-            _historyDataContext.Histories.Add(new ModuleHistoryItem
+            context.Histories.Add(new ModuleHistoryItem
             {
                 ModuleId = component.Id,
                 Date = DateTime.Now,
                 Data = JsonConvert.SerializeObject((e.Pin, e.State))
             });
-
-            //_logger.LogInformation($@"{component.Name} - {(e.State == RelayState.Opened ? "ON" : "OFF")}");
         }
 
         private void SensOnDataReceived(object? sender, SensorEventArgs e)
         {
             if (!(sender is IoTComponent component))
                 return;
+            var _optionsBuilder = new DbContextOptionsBuilder<HistoryDbContext>().UseSqlite(_sqlProvider.GetConnection());
+            using var context = new HistoryDbContext(_optionsBuilder.Options);
 
-            //var serviceProvider = _serviceCollection.BuildServiceProvider();
-            //var historyContext = serviceProvider.GetService<IHistoryDataContext>();
-
-            _historyDataContext.Histories.Add(new ModuleHistoryItem
+            context.Histories.Add(new ModuleHistoryItem
             {
                 ModuleId = component.Id,
                 Date = DateTime.Now,
                 Data = JsonConvert.SerializeObject(e.Data)
             });
-
-            //_logger.LogInformation($@"{component.Name} - {e.Data}");
         }
 
         public void Initialize(InitializableOptions options)
@@ -89,6 +86,14 @@ namespace GrowIoT.Services
 
                 IsInitialized = true;
             }
+        }
+
+        public List<ModuleHistoryItem> GetModuleHistory(int moduleId)
+        {
+            var _optionsBuilder = new DbContextOptionsBuilder<HistoryDbContext>().UseSqlite(_sqlProvider.GetConnection());
+            using var context = new HistoryDbContext(_optionsBuilder.Options);
+
+            return context.Histories.Where(x => x.ModuleId == moduleId).OrderBy(x => x.Date).ToList();
         }
     }
 

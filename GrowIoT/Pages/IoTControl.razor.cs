@@ -26,7 +26,7 @@ namespace GrowIoT.Pages
         #region DI
 
         [Inject] protected ILogger<IoTControl> Logger { get; private set; }
-        [Inject] protected IHistoryDataContext HistoryContext { get; private set; }
+        [Inject] protected IHistoryService HistoryService { get; private set; }
 
         #endregion
 
@@ -42,27 +42,27 @@ namespace GrowIoT.Pages
 
         protected SfChart HistoryChart;
 
-        
 
-        protected async Task OnInitializedAsync()
+
+        protected override async Task OnInitializedAsync()
         {
-            if (Id.HasValue)
-            {
-                Module = await BoxManager.GetModule(Id.Value);
-                Module.DataReceived += ModuleOnDataReceived;
-                Module.StateChanged += ModuleOnStateChanged;
-                                
-                var moduleHistory = HistoryContext.Histories.Where(x => x.ModuleId == Module.Id).OrderBy(x => x.Date).TakeLast(50);
+            if (!Id.HasValue)
+                return;
 
-                if (Module.Type == ModuleType.HumidityAndTemperature)
+            Module = await BoxManager.GetModule(Id.Value);
+            Module.DataReceived += ModuleOnDataReceived;
+            Module.StateChanged += ModuleOnStateChanged;
+
+            var moduleHistory = HistoryService.GetModuleHistory(Module.Id).TakeLast(50).ToList();
+
+            if (Module.Type == ModuleType.HumidityAndTemperature)
+            {
+                HistoryData = moduleHistory.Select(x => new ChartData
                 {
-                    HistoryData = moduleHistory.Select(x => new ChartData
-                    {
-                        X = x.Date.ToString("H:m:s"),
-                        Y = JsonConvert.DeserializeObject<DhtData>(x.Data).ToString(),
-                        Color = "blue"
-                    }).ToList();
-                }
+                    X = x.Date.ToString("H:m:s"),
+                    Y = JsonConvert.DeserializeObject<DhtData>(x.Data).ToString(),
+                    Color = "blue"
+                }).ToList();
             }
 
             await base.OnInitializedAsync();
@@ -70,13 +70,14 @@ namespace GrowIoT.Pages
 
         private void ModuleOnStateChanged(object? sender, RelayEventArgs e)
         {
-            
+
         }
 
         private void ModuleOnDataReceived(object? sender, SensorEventArgs e)
         {
             HistoryData.RemoveAt(0);
-            HistoryData.Add(new ChartData{
+            HistoryData.Add(new ChartData
+            {
                 Color = "blue",
                 X = DateTime.Now.ToString("H:m:s"),
                 Y = ((DhtData)e.Data).ToString(),

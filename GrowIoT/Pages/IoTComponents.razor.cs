@@ -17,7 +17,6 @@ namespace GrowIoT.Pages
     public class IoTComponentsBase : BaseGrowComponent
     {
         #region fields
-
         [Inject] protected ILogger<IoTComponentsBase> Logger { get; private set; }
         [Inject] protected IStringLocalizer<AppResources> Localizer { get; private set; }
         [Inject] protected IToastService ToastService { get; private set; }

@@ -11,6 +11,7 @@ namespace Infrastructure.Data
     {
         public virtual DbSet<ModuleHistoryItem> Histories { get; set; }
 
+
         public HistoryDbContext(DbContextOptions<HistoryDbContext> options)
             : base(options)
         {

@@ -81,6 +81,7 @@ namespace GrowIoT
             services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
 
             services.AddSingleton<IIoTConfigService, IoTConfigService>();
+            services.AddSingleton<IHistoryService, HistoryService>();
             services.AddSingleton<IJobsService, JobsService>();
             services.AddSingleton<IHubService, HubService>();
             services.AddSingleton<IMemoryMetricsClient, MemoryMetricsClient>();
@@ -100,7 +101,7 @@ namespace GrowIoT
             services.AddSyncfusionBlazor();
             services.AddSingleton<CircuitHandler>(new CircuitHandlerService());
 
-            services.AddScoped<IHistoryService, HistoryService>();
+           
 
 
         }
