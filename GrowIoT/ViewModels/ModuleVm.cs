@@ -84,9 +84,9 @@ namespace GrowIoT.ViewModels
             {
                 case ModuleType.HumidityAndTemperature:
                     {
-                        if (e.Data is DhtData moduleData && !double.IsNaN(moduleData.Temperature.Celsius))
+                        if (e.Data is DhtData moduleData && !double.IsNaN(moduleData.Temperature))
                         {
-                            CurrentValue = $"<b><i class='fas fa-thermometer-half'></i>{moduleData.Temperature.Celsius}&#8451;</b><br/><b><i class='fas fa-tint'></i>{moduleData.Humidity}%</b>";
+                            CurrentValue = $"<b><i class='fas fa-thermometer-half'></i>{moduleData.Temperature}&#8451;</b><br/><b><i class='fas fa-tint'></i>{moduleData.Humidity}%</b>";
                         }
 
 

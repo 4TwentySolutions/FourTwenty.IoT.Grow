@@ -47,7 +47,7 @@ namespace GrowIoT.Extensions
 
 #else
                 using GpioController controller = new GpioController(PinNumberingScheme.Logical);
-                initOptions.Controller = controller
+                initOptions.Controller = controller;
 #endif
 
                 logger.LogInformation($"{nameof(InitIoT)} Iot config Initialize");

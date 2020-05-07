@@ -13,6 +13,7 @@ namespace GrowIoT.Interfaces
     {
         ConfigDto GetConfig();
         IList<IModule> GetModules();
+        IModule GetModule(int id);
         Task<long> UpdateConfig(ConfigDto model);
     }
 }

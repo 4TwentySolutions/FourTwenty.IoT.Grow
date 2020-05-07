@@ -16,11 +16,15 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Syncfusion.Blazor.Charts;
-using Syncfusion.Blazor.CircularGauge;
+using Blazored.Toast.Services;
+using FourTwenty.IoT.Connect.Entities;
+using Microsoft.Extensions.Localization;
+using Microsoft.AspNetCore.Authorization;
+using System.Collections.ObjectModel;
 
 namespace GrowIoT.Pages
 {
-    public partial class IoTControl : IDisposable
+    public partial class IoTControl : BaseGrowComponent
     {
 
         #region DI
@@ -30,14 +34,14 @@ namespace GrowIoT.Pages
 
         #endregion
 
-        private Timer _timer;
+        //private Timer _timer;
 
         [Parameter]
         public int? Id { get; set; }
 
         public ModuleVm Module { get; set; }
 
-        public List<ChartData> HistoryData { get; set; }
+        public ObservableCollection<ChartData> HistoryData { get; set; }
 
 
         protected SfChart HistoryChart;
@@ -57,17 +61,27 @@ namespace GrowIoT.Pages
 
             if (Module.Type == ModuleType.HumidityAndTemperature)
             {
-                HistoryData = moduleHistory.Select(x => new ChartData
-                {
-                    X = x.Date.ToString("H:m:ss"),
-                    Y = (JsonConvert.DeserializeObject<DhtData>(x.Data)).Humidity.ToString(), // TODO needs make it better
-                    Y2 = (JsonConvert.DeserializeObject<DhtData>(x.Data)).Temperature.Celsius.ToString(),
-                    Color = "blue",
-                    Color2 = "green",
-                    Text = (JsonConvert.DeserializeObject<DhtData>(x.Data)).Humidity.ToString(),
-                    Text2 = (JsonConvert.DeserializeObject<DhtData>(x.Data)).Temperature.Celsius.ToString(),
+                var historyData = new List<ChartData>();
 
-                }).ToList();
+                foreach (var item in moduleHistory)
+                {
+                    var itemData = JsonConvert.DeserializeObject<DhtData>(item.Data);
+
+                    var historyItem = new ChartData
+                    {
+                        X = item.Date.ToString("H:mm:ss"),
+                        Y = itemData.Humidity.ToString(),
+                        Y2 = itemData.Temperature.ToString(),
+                        Color = "blue",
+                        Color2 = "red",
+                        Text = itemData.Humidity.ToString() + "%",
+                        Text2 = itemData.Temperature.ToString() + "°C",
+                    };
+
+                    historyData.Add(historyItem);
+                }
+
+                HistoryData = new ObservableCollection<ChartData>(historyData);
             }
 
             await base.OnInitializedAsync();
@@ -78,52 +92,35 @@ namespace GrowIoT.Pages
 
         }
 
-        private void ModuleOnDataReceived(object? sender, SensorEventArgs e)
+        private async void ModuleOnDataReceived(object? sender, SensorEventArgs e)
         {
-            HistoryData.RemoveAt(0);
-            HistoryData.Add(new ChartData
+            var currentData = HistoryData.ToList();
+
+            currentData.RemoveAt(0);
+            currentData.Add(new ChartData
             {
-                X = DateTime.Now.ToString("H:m:ss"),
-                Y = ((DhtData)e.Data).Humidity.ToString(), // TODO needs make it better
-                Y2 = ((DhtData)e.Data).Temperature.Celsius.ToString(),
+                X = DateTime.Now.ToString("H:mm:ss"),
+                Y = ((DhtData)e.Data).Humidity.ToString(),
+                Y2 = ((DhtData)e.Data).Temperature.ToString(),
                 Color = "blue",
-                Color2 = "green",
-                Text = ((DhtData)e.Data).Humidity.ToString(),
-                Text2 = ((DhtData)e.Data).Temperature.Celsius.ToString(),
+                Color2 = "red",
+                Text = ((DhtData)e.Data).Humidity.ToString() + "%",
+                Text2 = ((DhtData)e.Data).Temperature.ToString() + "°C",
             });
-        }
 
-        protected override async Task OnAfterRenderAsync(bool firstRender)
-        {
-            if (_timer == null)
+            await InvokeAsync(() =>
             {
-                _timer = new Timer(1000) { AutoReset = true, Enabled = true };
-                _timer.Elapsed += DisplayTimerElapsed;
-                _timer.Start();
-            }
+                try
+                {
+                    HistoryData = new ObservableCollection<ChartData>(currentData);
+                    StateHasChanged();
+                }
+                catch (Exception exception)
+                {
+                    Logger.LogError(exception, nameof(ModuleOnDataReceived));
+                }
 
-            await base.OnAfterRenderAsync(firstRender);
-        }
-
-        private async void DisplayTimerElapsed(object sender, ElapsedEventArgs e)
-        {
-            try
-            {
-                //var metrics = MemoryMetricsClient.GetMetrics();
-                //var newUsage = await GetCpuUsageForProcess();
-                //HistoryData = metrics;
-                //CpuUsageByCurrentProcess = newUsage == 0 ? CpuUsageByCurrentProcess : newUsage;
-                //await InvokeAsync(async () =>
-                //{
-                //    StateHasChanged();
-                //    await CpuGauge.SetPointerValue(0, 0, CpuUsageByCurrentProcess);
-                //});
-
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, nameof(DisplayTimerElapsed));
-            }
+            });
         }
 
         #region IDisposable Support

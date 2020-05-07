@@ -63,17 +63,20 @@ namespace GrowIoT.Managers
 
         public async Task<ModuleVm> GetModule(int id)
         {
-            var module  = await _context.Modules.Include(d => d.Rules).FirstOrDefaultAsync(d => d.Id == id);
-            var mod = _mapper.Map<ModuleVm>(module);
+            var module = _mapper.Map<ModuleVm>(await _context.Modules.Include(d => d.Rules).FirstOrDefaultAsync(d => d.Id == id));
+            var moduleRaw = _configService.GetModule(id);
 
-            foreach (var moduleRuleVm in mod.Rules)
+            module.Sensor = moduleRaw as ISensor;
+            module.Relay = moduleRaw as IRelay;
+
+            foreach (var moduleRuleVm in module.Rules)
             {
                 var rule = JsonConvert.DeserializeObject<CronRuleData>(moduleRuleVm.RuleContent) ?? new CronRuleData();
                 moduleRuleVm.Job = rule.Job;
-                moduleRuleVm.Pins = mod.Pins.ToList();
+                moduleRuleVm.Pins = module.Pins.ToList();
             }
 
-            return mod;
+            return module;
         }
 
         public async Task SaveModule(ModuleVm module)

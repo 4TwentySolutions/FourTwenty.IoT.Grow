@@ -16,6 +16,7 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><NavLink href="/">@Localizer["Home"]</NavLink></li>
+                    <li class="breadcrumb-item"><NavLink href="/iotcomponents">@Localizer["Components"]</NavLink></li>
                     <li class="breadcrumb-item active" aria-current="page">@Localizer["Component control"]</li>
                 </ol>
             </nav>
@@ -32,19 +33,22 @@
                             <h3>@Localizer["History"]</h3>
                             <div class="d-flex flex-column justify-content-center align-content-center">
                                 <SfChart @ref="HistoryChart"
-                                         Width="100%" 
+                                         Width="100%"
                                          Height="450px">
-                                    <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category"/>
+                                    <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category" />
+
+                                    <ChartTooltipSettings Enable="true" Format="${series.name} ${point.x} : ${point.y}">
+                                    </ChartTooltipSettings>
 
                                     <ChartSeriesCollection>
                                         <ChartSeries DataSource="@HistoryData" XName="X" YName="Y" PointColorMapping="Color" Type="ChartSeriesType.MultiColoredLine">
-                                            <ChartMarker>
+                                            <ChartMarker Visible="true" Height="5" Width="5">
                                                 <ChartDataLabel Visible="true" Name="Text">
                                                 </ChartDataLabel>
                                             </ChartMarker>
                                         </ChartSeries>
                                         <ChartSeries DataSource="@HistoryData" XName="X" YName="Y2" PointColorMapping="Color2" Type="ChartSeriesType.MultiColoredLine">
-                                            <ChartMarker>
+                                            <ChartMarker Visible="true" Height="5" Width="5">
                                                 <ChartDataLabel Visible="true" Name="Text2">
                                                 </ChartDataLabel>
                                             </ChartMarker>

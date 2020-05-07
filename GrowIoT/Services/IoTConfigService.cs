@@ -145,6 +145,11 @@ namespace GrowIoT.Services
                 IsInitialized = true;
             }
         }
+
+        public IModule GetModule(int id)
+        {
+            return _modules.FirstOrDefault(x => x.Id == id);
+        }
     }
 
     public class ConfigInitOptions : InitializableOptions
