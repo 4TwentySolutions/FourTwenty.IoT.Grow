@@ -21,7 +21,7 @@ namespace GrowIoT.Extensions
 
         public static async Task InitDb(this IHistoryDataContext context, bool seed = false, int seedCount = 5)
         {
-            if (!(context is GrowDbContext dbContext))
+            if (!(context is HistoryDbContext dbContext))
                 return;
 
             var result = await dbContext.Database.EnsureCreatedAsync();

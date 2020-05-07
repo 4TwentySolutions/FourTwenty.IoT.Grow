@@ -104,7 +104,7 @@ namespace GrowIoT.Services
 #if DebugLocalWin
                         mod = new MockModule(rules, new[] { module.Pins.FirstOrDefault() })
                         {
-                            Id = 2,
+                            Id = 1,
                             Name = nameof(MockModule)
                         };
 #else
@@ -120,11 +120,11 @@ namespace GrowIoT.Services
                     if (module.Type == ModuleType.Relay)
                     {
 #if DebugLocalWin
-                        mod = new MockModule(rules, new[] { module.Pins.FirstOrDefault() })
-                        {
-                            Id = 1,
-                            Name = nameof(MockModule)
-                        };
+                        //mod = new MockModule(rules, new[] { module.Pins.FirstOrDefault() })
+                        //{
+                        //    Id = 2,
+                        //    Name = nameof(MockModule)
+                        //};
 #else
                     if (module.Pins?.Length >= 2)
                     {

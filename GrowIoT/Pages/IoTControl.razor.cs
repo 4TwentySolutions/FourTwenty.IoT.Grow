@@ -59,9 +59,14 @@ namespace GrowIoT.Pages
             {
                 HistoryData = moduleHistory.Select(x => new ChartData
                 {
-                    X = x.Date.ToString("H:m:s"),
-                    Y = JsonConvert.DeserializeObject<DhtData>(x.Data).ToString(),
-                    Color = "blue"
+                    X = x.Date.ToString("H:m:ss"),
+                    Y = (JsonConvert.DeserializeObject<DhtData>(x.Data)).Humidity.ToString(), // TODO needs make it better
+                    Y2 = (JsonConvert.DeserializeObject<DhtData>(x.Data)).Temperature.Celsius.ToString(),
+                    Color = "blue",
+                    Color2 = "green",
+                    Text = (JsonConvert.DeserializeObject<DhtData>(x.Data)).Humidity.ToString(),
+                    Text2 = (JsonConvert.DeserializeObject<DhtData>(x.Data)).Temperature.Celsius.ToString(),
+
                 }).ToList();
             }
 
@@ -78,9 +83,13 @@ namespace GrowIoT.Pages
             HistoryData.RemoveAt(0);
             HistoryData.Add(new ChartData
             {
+                X = DateTime.Now.ToString("H:m:ss"),
+                Y = ((DhtData)e.Data).Humidity.ToString(), // TODO needs make it better
+                Y2 = ((DhtData)e.Data).Temperature.Celsius.ToString(),
                 Color = "blue",
-                X = DateTime.Now.ToString("H:m:s"),
-                Y = ((DhtData)e.Data).ToString(),
+                Color2 = "green",
+                Text = ((DhtData)e.Data).Humidity.ToString(),
+                Text2 = ((DhtData)e.Data).Temperature.Celsius.ToString(),
             });
         }
 
@@ -92,9 +101,7 @@ namespace GrowIoT.Pages
                 _timer.Elapsed += DisplayTimerElapsed;
                 _timer.Start();
             }
-            //CpuUsageByCurrentProcess = await GetCpuUsageForProcess();
-            //Metrics = MemoryMetricsClient.GetMetrics();
-            //await CpuGauge.SetPointerValue(0, 0, CpuUsageByCurrentProcess);
+
             await base.OnAfterRenderAsync(firstRender);
         }
 
@@ -148,6 +155,10 @@ namespace GrowIoT.Pages
     {
         public string X;
         public string Y;
+        public string Y2;
+        public string Color2;
         public string Color;
+        public string Text;
+        public string Text2;
     }
 }

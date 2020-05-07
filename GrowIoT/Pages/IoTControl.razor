@@ -37,8 +37,18 @@
                                     <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category"/>
 
                                     <ChartSeriesCollection>
-                                        <ChartSeries DataSource="@HistoryData" XName="X" YName="Y" PointColorMapping="Color" Type="ChartSeriesType.MultiColoredLine"/>
-                                        
+                                        <ChartSeries DataSource="@HistoryData" XName="X" YName="Y" PointColorMapping="Color" Type="ChartSeriesType.MultiColoredLine">
+                                            <ChartMarker>
+                                                <ChartDataLabel Visible="true" Name="Text">
+                                                </ChartDataLabel>
+                                            </ChartMarker>
+                                        </ChartSeries>
+                                        <ChartSeries DataSource="@HistoryData" XName="X" YName="Y2" PointColorMapping="Color2" Type="ChartSeriesType.MultiColoredLine">
+                                            <ChartMarker>
+                                                <ChartDataLabel Visible="true" Name="Text2">
+                                                </ChartDataLabel>
+                                            </ChartMarker>
+                                        </ChartSeries>
                                     </ChartSeriesCollection>
                                 </SfChart>
                             </div>

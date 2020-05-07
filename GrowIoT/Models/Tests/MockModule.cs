@@ -23,7 +23,7 @@ namespace GrowIoT.Models.Tests
 
         public ValueTask<object> GetData()
         {
-            var val = new DhtData(Temperature.FromCelsius(_random.Next(0, 50)), _random.Next(20, 80));
+            var val = new DhtData(Temperature.FromCelsius(_random.Next(10, 50)), _random.Next(20, 80));
             DataReceived?.Invoke(this, new SensorEventArgs(val));
             return new ValueTask<object>(val);
         }

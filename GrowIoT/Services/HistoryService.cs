@@ -62,6 +62,8 @@ namespace GrowIoT.Services
                 Date = DateTime.Now,
                 Data = JsonConvert.SerializeObject(e.Data)
             });
+
+            context.SaveChanges();
         }
 
         public void Initialize(InitializableOptions options)
