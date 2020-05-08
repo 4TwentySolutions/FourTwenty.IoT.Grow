@@ -14,14 +14,16 @@ using Microsoft.Extensions.Hosting;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.Threading;
 
 namespace GrowIoT.Services
 {
     public class HistoryService : IHistoryService
     {
         private readonly IConfiguration _configuration;
+        private Semaphore semaphoreObject = new Semaphore(initialCount: 1, maximumCount: 1, name: nameof(HistoryService));
         //private DbContextOptionsBuilder<HistoryDbContext> _optionsBuilder;
-        private SqLiteProvider<HistorySqlConnectionAsync>  _sqlProvider;
+        private SqLiteProvider<HistorySqlConnectionAsync> _sqlProvider;
         public bool IsInitialized { get; set; }
 
         public HistoryService(IConfiguration configuration, IServiceProvider serviceProvider)
@@ -38,21 +40,9 @@ namespace GrowIoT.Services
         {
             if (!(sender is IoTComponent component))
                 return;
-            var _optionsBuilder = new DbContextOptionsBuilder<HistoryDbContext>().UseSqlite(_sqlProvider.GetConnection());
-            using var context = new HistoryDbContext(_optionsBuilder.Options);
 
-            context.Histories.Add(new ModuleHistoryItem
-            {
-                ModuleId = component.Id,
-                Date = DateTime.Now,
-                Data = JsonConvert.SerializeObject((e.Pin, e.State))
-            });
-        }
+            semaphoreObject.WaitOne();
 
-        private void SensOnDataReceived(object? sender, SensorEventArgs e)
-        {
-            if (!(sender is IoTComponent component))
-                return;
             var _optionsBuilder = new DbContextOptionsBuilder<HistoryDbContext>().UseSqlite(_sqlProvider.GetConnection());
             using var context = new HistoryDbContext(_optionsBuilder.Options);
 
@@ -64,6 +54,30 @@ namespace GrowIoT.Services
             });
 
             context.SaveChanges();
+
+            semaphoreObject.Release();
+        }
+
+        private void SensOnDataReceived(object? sender, SensorEventArgs e)
+        {
+            if (!(sender is IoTComponent component))
+                return;
+
+            semaphoreObject.WaitOne();
+
+            var _optionsBuilder = new DbContextOptionsBuilder<HistoryDbContext>().UseSqlite(_sqlProvider.GetConnection());
+            using var context = new HistoryDbContext(_optionsBuilder.Options);
+
+            context.Histories.Add(new ModuleHistoryItem
+            {
+                ModuleId = component.Id,
+                Date = DateTime.Now,
+                Data = JsonConvert.SerializeObject(e.Data)
+            });
+
+            context.SaveChanges();
+
+            semaphoreObject.Release();
         }
 
         public void Initialize(InitializableOptions options)

@@ -21,6 +21,7 @@ using FourTwenty.IoT.Connect.Entities;
 using Microsoft.Extensions.Localization;
 using Microsoft.AspNetCore.Authorization;
 using System.Collections.ObjectModel;
+using Infrastructure.Entities;
 
 namespace GrowIoT.Pages
 {
@@ -43,6 +44,8 @@ namespace GrowIoT.Pages
 
         public ObservableCollection<ChartData> HistoryData { get; set; }
 
+        public ChartSeriesType ChartType { get; set; } = ChartSeriesType.MultiColoredLine;
+
 
         protected SfChart HistoryChart;
 
@@ -58,11 +61,10 @@ namespace GrowIoT.Pages
             Module.StateChanged += ModuleOnStateChanged;
 
             var moduleHistory = HistoryService.GetModuleHistory(Module.Id).TakeLast(50).ToList();
+            var historyData = new List<ChartData>();
 
             if (Module.Type == ModuleType.HumidityAndTemperature)
             {
-                var historyData = new List<ChartData>();
-
                 foreach (var item in moduleHistory)
                 {
                     var itemData = JsonConvert.DeserializeObject<DhtData>(item.Data);
@@ -80,9 +82,58 @@ namespace GrowIoT.Pages
 
                     historyData.Add(historyItem);
                 }
-
-                HistoryData = new ObservableCollection<ChartData>(historyData);
             }
+
+            if (Module.Type == ModuleType.Relay)
+            {
+                ChartType = ChartSeriesType.MultiColoredArea;
+
+                var dataList = new List<(ModuleHistoryItem item, RelayData data)>();
+
+                foreach (var item in moduleHistory)
+                {
+                    var itemData = JsonConvert.DeserializeObject<RelayData>(item.Data);
+                    dataList.Add((item, itemData));
+                }
+
+
+                int cur = 0;
+                RelayState? lastState = null;
+
+                foreach (var dataItem in dataList.Where(x => x.data.Pin == Module.Pins.FirstOrDefault()))
+                {
+
+                    //foreach (var dataItem in item)
+                    //{
+                    var historyItem = new ChartData
+                    {
+                        X = dataItem.item.Date.ToString("H:mm:ss")
+                    };
+
+
+                    historyItem.Y = (dataItem.data.State == RelayState.Opened ? 1 : 0).ToString();
+                    historyItem.Color = dataItem.data.State == RelayState.Opened ? "green" : "red";
+                    historyItem.Text = dataItem.data.State == RelayState.Opened ? "ON" : "OFF";
+
+
+
+                    //if (cur == 1)
+                    //{
+                    //    historyItem.Y2 = (dataItem.data.State == RelayState.Opened ? 1 : 0).ToString();
+                    //    historyItem.Color2 = dataItem.data.State == RelayState.Opened ? "green" : "red";
+                    //    historyItem.Text2 = dataItem.data.State == RelayState.Opened ? "ON" : "OFF";
+                    //}
+
+                    if (lastState == null || lastState != dataItem.data.State)
+                        historyData.Add(historyItem);
+
+                    lastState = dataItem.data.State;
+                    //  }
+                    cur++;
+                }
+            }
+
+            HistoryData = new ObservableCollection<ChartData>(historyData);
 
             await base.OnInitializedAsync();
         }

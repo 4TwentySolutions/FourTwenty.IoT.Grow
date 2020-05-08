@@ -46,7 +46,7 @@
                             <p class="card-text"><b>Pin(s):</b>@string.Join(",", module.Pins).</p>
                         </div>
                         <div class="card-footer text-muted">
-                            <a class="btn btn-dark btn-sm" href="/iotcomponents/control/@(module.Id)">@Localizer["Control"] <i class="fas fa-chart-area"></i></a>
+                            <a class="btn btn-dark btn-sm" href="/iotcomponents/data/@(module.Id)">@Localizer["Data"] <i class="fas fa-chart-area"></i></a>
                             <a class="btn btn-info btn-sm" href="/iotcomponents/@(module.Id)">@Localizer["Edit"] <i class="fa fa-edit"></i></a>
                             <button class="btn btn-danger btn-sm" @onclick="@((e)=>Delete(module))">@Localizer["Delete"] <i class="fa fa-trash"></i></button>
                         </div>

@@ -1,4 +1,4 @@
-﻿@page "/iotcomponents/control/{Id:int}"
+﻿@page "/iotcomponents/data/{Id:int}"
 @using Microsoft.Extensions.Localization
 @using Syncfusion.Blazor.Charts
 @inherits BaseGrowComponent
@@ -17,7 +17,7 @@
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><NavLink href="/">@Localizer["Home"]</NavLink></li>
                     <li class="breadcrumb-item"><NavLink href="/iotcomponents">@Localizer["Components"]</NavLink></li>
-                    <li class="breadcrumb-item active" aria-current="page">@Localizer["Component control"]</li>
+                    <li class="breadcrumb-item active" aria-current="page">@Localizer["Component data"]</li>
                 </ol>
             </nav>
             <div class="card mt-4">
@@ -30,7 +30,7 @@
                     }
                     <div class="row">
                         <div class="col-12 text-center ">
-                            <h3>@Localizer["History"]</h3>
+                            <h3>@Localizer["Real-time data"]</h3>
                             <div class="d-flex flex-column justify-content-center align-content-center">
                                 <SfChart @ref="HistoryChart"
                                          Width="100%"
@@ -41,13 +41,13 @@
                                     </ChartTooltipSettings>
 
                                     <ChartSeriesCollection>
-                                        <ChartSeries DataSource="@HistoryData" XName="X" YName="Y" PointColorMapping="Color" Type="ChartSeriesType.MultiColoredLine">
+                                        <ChartSeries DataSource="@HistoryData" XName="X" YName="Y" PointColorMapping="Color" Type="@ChartType">
                                             <ChartMarker Visible="true" Height="5" Width="5">
                                                 <ChartDataLabel Visible="true" Name="Text">
                                                 </ChartDataLabel>
                                             </ChartMarker>
                                         </ChartSeries>
-                                        <ChartSeries DataSource="@HistoryData" XName="X" YName="Y2" PointColorMapping="Color2" Type="ChartSeriesType.MultiColoredLine">
+                                        <ChartSeries DataSource="@HistoryData" XName="X" YName="Y2" PointColorMapping="Color2" Type="@ChartType">
                                             <ChartMarker Visible="true" Height="5" Width="5">
                                                 <ChartDataLabel Visible="true" Name="Text2">
                                                 </ChartDataLabel>

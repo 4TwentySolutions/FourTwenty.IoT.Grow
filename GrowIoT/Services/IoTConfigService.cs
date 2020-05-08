@@ -20,12 +20,12 @@ using Infrastructure.Entities;
 using Microsoft.Extensions.DependencyInjection;
 
 #if !DebugLocalWin
-    using System.IO;
-    using FourTwenty.IoT.Server;
-    using FourTwenty.IoT.Server.Components.Relays;
-    using FourTwenty.IoT.Server.Components.Sensors;
-    using FourTwenty.IoT.Server.Jobs;
-    using Iot.Device.DHTxx;
+using System.IO;
+using FourTwenty.IoT.Server;
+using FourTwenty.IoT.Server.Components.Relays;
+using FourTwenty.IoT.Server.Components.Sensors;
+using FourTwenty.IoT.Server.Jobs;
+using Iot.Device.DHTxx;
 #endif
 
 namespace GrowIoT.Services
@@ -104,15 +104,15 @@ namespace GrowIoT.Services
 #if DebugLocalWin
                         mod = new MockModule(rules, new[] { module.Pins.FirstOrDefault() })
                         {
-                            Id = 1,
+                            Id = module.Id,
                             Name = nameof(MockModule)
                         };
 #else
-                    mod = new DhtSensor(module.Pins.FirstOrDefault(), configInitOptions.Controller, rules)
-                    {
-                        Id = module.Id,
-                        Name = module.Name
-                    };
+                        mod = new DhtSensor(module.Pins.FirstOrDefault(), configInitOptions.Controller, rules)
+                        {
+                            Id = module.Id,
+                            Name = module.Name
+                        };
 #endif
 
                     }
@@ -120,21 +120,21 @@ namespace GrowIoT.Services
                     if (module.Type == ModuleType.Relay)
                     {
 #if DebugLocalWin
-                        //mod = new MockModule(rules, new[] { module.Pins.FirstOrDefault() })
-                        //{
-                        //    Id = 2,
-                        //    Name = nameof(MockModule)
-                        //};
-#else
-                    if (module.Pins?.Length >= 2)
-                    {
-                        mod = new Relay(module.Pins, configInitOptions.Controller)
+                        mod = new MockRelay(rules, module.Pins)
                         {
                             Id = module.Id,
-                            Name = module.Name,
-                            Rules = rules
+                            Name = nameof(MockRelay)
                         };
-                    }
+#else
+                        if (module.Pins?.Length >= 2)
+                        {
+                            mod = new Relay(module.Pins, configInitOptions.Controller)
+                            {
+                                Id = module.Id,
+                                Name = module.Name,
+                                Rules = rules
+                            };
+                        }
 #endif
                     }
 
