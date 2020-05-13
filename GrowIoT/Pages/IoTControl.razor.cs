@@ -76,8 +76,8 @@ namespace GrowIoT.Pages
                         Y2 = itemData.Temperature.ToString(),
                         Color = "blue",
                         Color2 = "red",
-                        Text = itemData.Humidity.ToString() + "%",
-                        Text2 = itemData.Temperature.ToString() + "°C",
+                        Text = itemData.Humidity + "%",
+                        Text2 = itemData.Temperature + "°C",
                     };
 
                     historyData.Add(historyItem);
@@ -86,9 +86,9 @@ namespace GrowIoT.Pages
 
             if (Module.Type == ModuleType.Relay)
             {
-                ChartType = ChartSeriesType.MultiColoredArea;
-
                 var dataList = new List<(ModuleHistoryItem item, RelayData data)>();
+
+                //TODO make it better
 
                 foreach (var item in moduleHistory)
                 {
@@ -96,40 +96,32 @@ namespace GrowIoT.Pages
                     dataList.Add((item, itemData));
                 }
 
-
-                int cur = 0;
-                RelayState? lastState = null;
-
-                foreach (var dataItem in dataList.Where(x => x.data.Pin == Module.Pins.FirstOrDefault()))
+                foreach (var item in dataList.GroupBy(x => x.item.Date))
                 {
 
-                    //foreach (var dataItem in item)
-                    //{
                     var historyItem = new ChartData
                     {
-                        X = dataItem.item.Date.ToString("H:mm:ss")
+                        X = item.Key.ToString("H:mm:ss")
                     };
 
+                    var it = item.FirstOrDefault(x => x.data.Pin == Module.Pins.FirstOrDefault());
+                    if (it.data != null)
+                    {
+                        historyItem.Y = it.data.Pin.ToString();
+                        historyItem.Color = it.data.State == RelayState.Opened ? "green" : "red";
+                        historyItem.Text = it.data.State == RelayState.Opened ? "ON" : "OFF";
+                    }
+                    
 
-                    historyItem.Y = (dataItem.data.State == RelayState.Opened ? 1 : 0).ToString();
-                    historyItem.Color = dataItem.data.State == RelayState.Opened ? "green" : "red";
-                    historyItem.Text = dataItem.data.State == RelayState.Opened ? "ON" : "OFF";
+                    var it2 = item.FirstOrDefault(x => x.data.Pin == Module.Pins.LastOrDefault());
+                    if (it2.data != null)
+                    {
+                        historyItem.Y2 = it2.data.Pin.ToString();
+                        historyItem.Color2 = it2.data.State == RelayState.Opened ? "green" : "red";
+                        historyItem.Text2 = it2.data.State == RelayState.Opened ? "ON" : "OFF";
+                    }
 
-
-
-                    //if (cur == 1)
-                    //{
-                    //    historyItem.Y2 = (dataItem.data.State == RelayState.Opened ? 1 : 0).ToString();
-                    //    historyItem.Color2 = dataItem.data.State == RelayState.Opened ? "green" : "red";
-                    //    historyItem.Text2 = dataItem.data.State == RelayState.Opened ? "ON" : "OFF";
-                    //}
-
-                    if (lastState == null || lastState != dataItem.data.State)
-                        historyData.Add(historyItem);
-
-                    lastState = dataItem.data.State;
-                    //  }
-                    cur++;
+                    historyData.Add(historyItem);
                 }
             }
 
@@ -138,14 +130,51 @@ namespace GrowIoT.Pages
             await base.OnInitializedAsync();
         }
 
-        private void ModuleOnStateChanged(object? sender, RelayEventArgs e)
+        private async void ModuleOnStateChanged(object? sender, RelayEventArgs e)
         {
+            var currentData = HistoryData?.ToList() ?? new List<ChartData>();
 
+            currentData.RemoveAt(0);
+
+            var historyItem = new ChartData
+            {
+                X = DateTime.Now.ToString("H:mm:ss")
+            };
+
+            if(e.Data.Pin == Module.Pins.FirstOrDefault())
+            {
+                historyItem.Y = e.Data.Pin.ToString();
+                historyItem.Color = e.Data.State == RelayState.Opened ? "green" : "red";
+                historyItem.Text = e.Data.State == RelayState.Opened ? "ON" : "OFF";
+            }
+
+            if (e.Data.Pin == Module.Pins.LastOrDefault())
+            {
+                historyItem.Y2 = e.Data.Pin.ToString();
+                historyItem.Color2 = e.Data.State == RelayState.Opened ? "green" : "red";
+                historyItem.Text2 = e.Data.State == RelayState.Opened ? "ON" : "OFF";
+            }
+
+            currentData.Add(historyItem);
+
+            await InvokeAsync(() =>
+            {
+                try
+                {
+                    HistoryData = new ObservableCollection<ChartData>(currentData);
+                    StateHasChanged();
+                }
+                catch (Exception exception)
+                {
+                    Logger.LogError(exception, nameof(ModuleOnDataReceived));
+                }
+
+            });
         }
 
         private async void ModuleOnDataReceived(object? sender, SensorEventArgs e)
         {
-            var currentData = HistoryData.ToList();
+            var currentData = HistoryData?.ToList() ?? new List<ChartData>();
 
             currentData.RemoveAt(0);
             currentData.Add(new ChartData
