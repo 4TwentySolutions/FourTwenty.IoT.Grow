@@ -1,51 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Timers;
 using FourTwenty.IoT.Connect.Constants;
 using FourTwenty.IoT.Connect.Interfaces;
 using FourTwenty.IoT.Server.Components.Sensors;
 using GrowIoT.Interfaces;
-using GrowIoT.Models.Diagnostics;
-using GrowIoT.Services;
 using GrowIoT.ViewModels;
-using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Syncfusion.Blazor.Charts;
-using Blazored.Toast.Services;
-using FourTwenty.IoT.Connect.Entities;
-using Microsoft.Extensions.Localization;
-using Microsoft.AspNetCore.Authorization;
-using System.Collections.ObjectModel;
+using GrowIoT.Common;
 using Infrastructure.Entities;
+using System.Collections.ObjectModel;
+using System.Drawing;
 
 namespace GrowIoT.Pages
 {
-    public partial class IoTControl : BaseGrowComponent
+    public partial class IoTControl : BaseGrowComponent, IDisposable
     {
 
+        private bool _isInitialized;
         #region DI
 
         [Inject] protected ILogger<IoTControl> Logger { get; private set; }
         [Inject] protected IHistoryService HistoryService { get; private set; }
 
         #endregion
-
-        //private Timer _timer;
-
         [Parameter]
         public int? Id { get; set; }
 
         public ModuleVm Module { get; set; }
 
-        public ObservableCollection<ChartData> HistoryData { get; set; }
+        public ObservableCollection<ChartData> HistoryData { get; set; } = new ObservableCollection<ChartData>();
 
-        public ChartSeriesType ChartType { get; set; } = ChartSeriesType.MultiColoredLine;
+        public double Maximum => HistoryData != null ? HistoryData.Max(d => Math.Max(d.Y, d.Y2)) + 5 : 5;
+        public double Minimum => HistoryData != null ? HistoryData.Min(d => Math.Min(d.Y, d.Y2)) - 5 : -5;
 
+        public ChartSeriesType ChartType { get; set; } = ChartSeriesType.Line;
+
+        public Syncfusion.Blazor.Charts.ValueType YAxisType { get; set; } = Syncfusion.Blazor.Charts.ValueType.Double;
 
         protected SfChart HistoryChart;
 
@@ -53,14 +48,16 @@ namespace GrowIoT.Pages
 
         protected override async Task OnInitializedAsync()
         {
+            if (_isInitialized)
+                return;
             if (!Id.HasValue)
                 return;
 
             Module = await BoxManager.GetModule(Id.Value);
-            Module.DataReceived += ModuleOnDataReceived;
-            Module.StateChanged += ModuleOnStateChanged;
+            Module.Subscribe();
+            Module.VisualStateChanged += ModuleOnVisualStateChanged;
 
-            var moduleHistory = HistoryService.GetModuleHistory(Module.Id).TakeLast(50).ToList();
+            var moduleHistory = (await HistoryService.GetModuleHistory(Module.Id)).TakeLast(50).ToList();
             var historyData = new List<ChartData>();
 
             if (Module.Type == ModuleType.HumidityAndTemperature)
@@ -68,24 +65,14 @@ namespace GrowIoT.Pages
                 foreach (var item in moduleHistory)
                 {
                     var itemData = JsonConvert.DeserializeObject<DhtData>(item.Data);
-
-                    var historyItem = new ChartData
-                    {
-                        X = item.Date.ToString("H:mm:ss"),
-                        Y = itemData.Humidity.ToString(),
-                        Y2 = itemData.Temperature.ToString(),
-                        Color = "blue",
-                        Color2 = "red",
-                        Text = itemData.Humidity + "%",
-                        Text2 = itemData.Temperature + "°C",
-                    };
-
-                    historyData.Add(historyItem);
+                    historyData.Add(CreateChartPoint(itemData, item.Date));
                 }
             }
 
             if (Module.Type == ModuleType.Relay)
             {
+                ChartType = ChartSeriesType.Line;
+                YAxisType = Syncfusion.Blazor.Charts.ValueType.Category;
                 var dataList = new List<(ModuleHistoryItem item, RelayData data)>();
 
                 //TODO make it better
@@ -101,24 +88,24 @@ namespace GrowIoT.Pages
 
                     var historyItem = new ChartData
                     {
-                        X = item.Key.ToString("H:mm:ss")
+                        X = item.Key
                     };
 
                     var it = item.FirstOrDefault(x => x.data.Pin == Module.Pins.FirstOrDefault());
                     if (it.data != null)
                     {
-                        historyItem.Y = it.data.Pin.ToString();
-                        historyItem.Color = it.data.State == RelayState.Opened ? "green" : "red";
-                        historyItem.Text = it.data.State == RelayState.Opened ? "ON" : "OFF";
+                        historyItem.Y = it.data.Pin;
+                        historyItem.ColorY = it.data.State == RelayState.Opened ? Color.Green : Color.Red;
+                        historyItem.TextY = it.data.State == RelayState.Opened ? "ON" : "OFF";
                     }
-                    
+
 
                     var it2 = item.FirstOrDefault(x => x.data.Pin == Module.Pins.LastOrDefault());
                     if (it2.data != null)
                     {
-                        historyItem.Y2 = it2.data.Pin.ToString();
-                        historyItem.Color2 = it2.data.State == RelayState.Opened ? "green" : "red";
-                        historyItem.Text2 = it2.data.State == RelayState.Opened ? "ON" : "OFF";
+                        historyItem.Y2 = it2.data.Pin;
+                        historyItem.ColorY2 = it2.data.State == RelayState.Opened ? Color.Green : Color.Red;
+                        historyItem.TextY2 = it2.data.State == RelayState.Opened ? "ON" : "OFF";
                     }
 
                     historyData.Add(historyItem);
@@ -128,114 +115,125 @@ namespace GrowIoT.Pages
             HistoryData = new ObservableCollection<ChartData>(historyData);
 
             await base.OnInitializedAsync();
+            _isInitialized = true;
         }
 
-        private async void ModuleOnStateChanged(object? sender, RelayEventArgs e)
+        private void ModuleOnVisualStateChanged(object? sender, VisualStateEventArgs e)
         {
-            var currentData = HistoryData?.ToList() ?? new List<ChartData>();
+            if (!(sender is ModuleVm module) || module != Module || HistoryChart == null) return;
 
-            currentData.RemoveAt(0);
+            switch (module.Type)
+            {
+                case ModuleType.Temperature:
+                    ModuleOnDataReceived(module.CurrentRawValue);
+                    break;
+                case ModuleType.HumidityAndTemperature:
+                    ModuleOnDataReceived(module.CurrentRawValue);
+                    break;
+                case ModuleType.Relay:
+                    ModuleOnStateChanged(module.CurrentRawValue);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
 
+        private void ModuleOnStateChanged(object data)
+        {
+            if (!(data is RelayData relayData)) return;
+            if (HistoryData.Count > 0)
+                HistoryData.RemoveAt(0);
+            HistoryData.Add(CreateRelayChartPoint(relayData, DateTime.Now));
+            HistoryChart.RefreshLiveData();
+        }
+
+        private void ModuleOnDataReceived(object data)
+        {
+
+            if (!(data is DhtData dhtData)) return;
+            if (HistoryData.Count > 0)
+                HistoryData.RemoveAt(0);
+            HistoryData.Add(CreateChartPoint(dhtData, DateTime.Now));
+            HistoryChart.RefreshLiveData();
+        }
+
+        private ChartData CreateChartPoint(DhtData dhtData, DateTime date)
+        {
+            return new ChartData
+            {
+                X = date,
+                Y = dhtData.Humidity,
+                Y2 = dhtData.Temperature,
+                ColorY = Color.LightBlue,
+                ColorY2 = Color.IndianRed,
+                TextY = dhtData.Humidity + "%",
+                TextY2 = dhtData.Temperature + "°C",
+                FillColorY = ColorTranslator.ToHtml(Color.LightBlue),
+                FillColorY2 = ColorTranslator.ToHtml(Color.LightYellow)
+            };
+        }
+
+        private ChartData CreateRelayChartPoint(RelayData relayData, DateTime date)
+        {
             var historyItem = new ChartData
             {
-                X = DateTime.Now.ToString("H:mm:ss")
+                X = date,
+                Y = Module.Pins.FirstOrDefault(),
+                Y2 = Module.Pins.LastOrDefault()
             };
 
-            if(e.Data.Pin == Module.Pins.FirstOrDefault())
+            if (relayData.Pin == Module.Pins.FirstOrDefault())
             {
-                historyItem.Y = e.Data.Pin.ToString();
-                historyItem.Color = e.Data.State == RelayState.Opened ? "green" : "red";
-                historyItem.Text = e.Data.State == RelayState.Opened ? "ON" : "OFF";
+                historyItem.ColorY = relayData.State == RelayState.Opened ? Color.Green : Color.Red;
+                historyItem.TextY = relayData.State == RelayState.Opened ? "ON" : "OFF";
             }
 
-            if (e.Data.Pin == Module.Pins.LastOrDefault())
+            if (relayData.Pin == Module.Pins.LastOrDefault())
             {
-                historyItem.Y2 = e.Data.Pin.ToString();
-                historyItem.Color2 = e.Data.State == RelayState.Opened ? "green" : "red";
-                historyItem.Text2 = e.Data.State == RelayState.Opened ? "ON" : "OFF";
+                historyItem.ColorY2 = relayData.State == RelayState.Opened ? Color.Green : Color.Red;
+                historyItem.TextY2 = relayData.State == RelayState.Opened ? "ON" : "OFF";
             }
-
-            currentData.Add(historyItem);
-
-            await InvokeAsync(() =>
-            {
-                try
-                {
-                    HistoryData = new ObservableCollection<ChartData>(currentData);
-                    StateHasChanged();
-                }
-                catch (Exception exception)
-                {
-                    Logger.LogError(exception, nameof(ModuleOnDataReceived));
-                }
-
-            });
-        }
-
-        private async void ModuleOnDataReceived(object? sender, SensorEventArgs e)
-        {
-            var currentData = HistoryData?.ToList() ?? new List<ChartData>();
-
-            currentData.RemoveAt(0);
-            currentData.Add(new ChartData
-            {
-                X = DateTime.Now.ToString("H:mm:ss"),
-                Y = ((DhtData)e.Data).Humidity.ToString(),
-                Y2 = ((DhtData)e.Data).Temperature.ToString(),
-                Color = "blue",
-                Color2 = "red",
-                Text = ((DhtData)e.Data).Humidity.ToString() + "%",
-                Text2 = ((DhtData)e.Data).Temperature.ToString() + "°C",
-            });
-
-            await InvokeAsync(() =>
-            {
-                try
-                {
-                    HistoryData = new ObservableCollection<ChartData>(currentData);
-                    StateHasChanged();
-                }
-                catch (Exception exception)
-                {
-                    Logger.LogError(exception, nameof(ModuleOnDataReceived));
-                }
-
-            });
+            return historyItem;
         }
 
         #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
+        private bool _disposedValue;
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!_disposedValue)
             {
                 if (disposing)
                 {
-
+                    if (Module != null)
+                    {
+                        Module.Unsubscribe();
+                        Module.VisualStateChanged -= ModuleOnVisualStateChanged;
+                    }
                 }
 
-                disposedValue = true;
+                _disposedValue = true;
             }
         }
 
-        // This code added to correctly implement the disposable pattern.
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
         }
         #endregion
     }
 
+
     public class ChartData
     {
-        public string X;
-        public string Y;
-        public string Y2;
-        public string Color2;
-        public string Color;
-        public string Text;
-        public string Text2;
+        public DateTime X;
+        public double Y;
+        public double Y2;
+        public Color ColorY;
+        public Color ColorY2;
+        public string FillColorY;
+        public string FillColorY2;
+        public string TextY;
+        public string TextY2;
     }
 }

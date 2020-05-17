@@ -1,19 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Device.Gpio;
-using System.Threading.Tasks;
-using FourTwenty.IoT.Connect.Dto;
 using FourTwenty.IoT.Connect.Interfaces;
 using GrowIoT.ViewModels;
-using Quartz;
 
 namespace GrowIoT.Interfaces
 {
-    public interface IIoTConfigService : IInitializableService
+    public interface IIoTConfigService : IInitializeService<GrowBoxViewModel>
     {
-        ConfigDto GetConfig();
         IList<IModule> GetModules();
+        GpioController Gpio { get; }
         IModule GetModule(int id);
-        Task<long> UpdateConfig(ConfigDto model);
+        
     }
 }

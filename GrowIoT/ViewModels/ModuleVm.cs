@@ -6,10 +6,11 @@ using System.Linq;
 using FourTwenty.IoT.Connect.Entities;
 using FourTwenty.IoT.Connect.Interfaces;
 using FourTwenty.IoT.Server.Components.Sensors;
+using GrowIoT.Common;
 
 namespace GrowIoT.ViewModels
 {
-    public class ModuleVm : EntityViewModel<GrowBoxModule>
+    public class ModuleVm : EntityViewModel<GrowBoxModule>, IDisposable
     {
         public int Id { get; set; }
         [Required]
@@ -19,54 +20,46 @@ namespace GrowIoT.ViewModels
         public int GrowBoxId { get; set; }
         public GrowBoxViewModel GrowBox { get; set; }
         public ICollection<ModuleRuleVm> Rules { get; set; }
+        public string CurrentValueString { get; set; }
+        public object CurrentRawValue { get; set; }
+        public IModule IotModule { get; set; }
 
-        private string _currentValue;
-        public string CurrentValue
+        public ISensor Sensor => IotModule as ISensor;
+        public IRelay Relay => IotModule as IRelay;
+
+
+        #region Events subscription
+
+        public void Subscribe()
         {
-            get => _currentValue;
-            set => _currentValue = value;
+
+            if (Sensor != null)
+                Sensor.DataReceived += SensorOnDataReceived;
+            if (Relay != null)
+                Relay.StateChanged += RelayOnStateChanged;
+        }
+
+        public void Unsubscribe()
+        {
+            if (Sensor != null)
+                Sensor.DataReceived -= SensorOnDataReceived;
+            if (Relay != null)
+                Relay.StateChanged -= RelayOnStateChanged;
         }
 
 
-        public event EventHandler<SensorEventArgs> DataReceived;
-        public event EventHandler<RelayEventArgs> StateChanged;
+        public event EventHandler<VisualStateEventArgs> VisualStateChanged;
 
 
-        private ISensor _sensor;
-        public ISensor Sensor
-        {
-            get => _sensor;
-            set
-            {
-                _sensor = value;
-                if (_sensor != null)
-                {
-                    _sensor.DataReceived += SensorOnDataReceived;
-                }
-            }
-        }
-
-        private IRelay _relay;
-        public IRelay Relay
-        {
-            get => _relay;
-            set
-            {
-                _relay = value;
-                if (_relay != null)
-                {
-                    _relay.StateChanged += RelayOnStateChanged;
-                }
-            }
-        }
 
         private void RelayOnStateChanged(object? sender, RelayEventArgs e)
         {
+            CurrentRawValue = e.Data;
             switch (Type)
             {
                 case ModuleType.Relay:
                     {
-                        CurrentValue = Relay.States.Aggregate("", (current, relayPin) =>
+                        CurrentValueString = Relay.States.Aggregate("", (current, relayPin) =>
                            // current + $"State {relayPin.Key}: {(relayPin.Value == RelayState.Opened ? "<b class='on-relay-state'>ON</b>" : "<b class='off-relay-state'>OFF</b>")} <br/>");
                            current + $"Pin {relayPin.Key}: {(relayPin.Value == RelayState.Opened ? "<i class='fas fa-toggle-on'></i>" : "<i class='fas fa-toggle-off'></i>")} <br/>");
 
@@ -74,19 +67,20 @@ namespace GrowIoT.ViewModels
                     }
             }
 
-            OnStateChanged(e);
+            VisualStateChanged?.Invoke(this, new VisualStateEventArgs());
         }
 
 
         private void SensorOnDataReceived(object? sender, SensorEventArgs e)
         {
+            CurrentRawValue = e.Data;
             switch (Type)
             {
                 case ModuleType.HumidityAndTemperature:
                     {
                         if (e.Data is DhtData moduleData && !double.IsNaN(moduleData.Temperature))
                         {
-                            CurrentValue = $"<b><i class='fas fa-thermometer-half'></i>{moduleData.Temperature}&#8451;</b><br/><b><i class='fas fa-tint'></i>{moduleData.Humidity}%</b>";
+                            CurrentValueString = $"<b><i class='fas fa-thermometer-half'></i>{moduleData.Temperature}&#8451;</b><br/><b><i class='fas fa-tint'></i>{moduleData.Humidity}%</b>";
                         }
 
 
@@ -94,17 +88,34 @@ namespace GrowIoT.ViewModels
                     }
             }
 
-            OnDataReceived(e);
+            VisualStateChanged?.Invoke(this, new VisualStateEventArgs());
+        }
+        #endregion
+
+
+        #region IDisposable Support
+        private bool _disposedValue; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposedValue) return;
+            if (disposing)
+            {
+                Unsubscribe();
+            }
+
+
+            _disposedValue = true;
         }
 
-        protected virtual void OnDataReceived(SensorEventArgs e)
-        {
-            DataReceived?.Invoke(this, e);
-        }
 
-        protected virtual void OnStateChanged(RelayEventArgs e)
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
         {
-            StateChanged?.Invoke(this, e);
+            Dispose(true);
         }
+        #endregion
+
+
     }
 }

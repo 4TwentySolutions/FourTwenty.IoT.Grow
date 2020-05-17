@@ -82,9 +82,12 @@ namespace GrowIoT
 
             services.AddSingleton<IIoTConfigService, IoTConfigService>();
             services.AddSingleton<IHistoryService, HistoryService>();
-            services.AddSingleton<IJobsService, JobsService>();
-            services.AddSingleton<IHubService, HubService>();
-            services.AddSingleton<IMemoryMetricsClient, MemoryMetricsClient>();
+            services.AddScoped<IJobsService, JobsService>();
+            services.AddScoped<IHubService, HubService>();
+            services.AddScoped<IMemoryMetricsClient, MemoryMetricsClient>();
+            services.AddScoped<IGrowboxManager, GrowboxManager>();
+            services.AddSingleton(provider => new GpioController(PinNumberingScheme.Logical));
+
             services.AddScoped<IHtmlSanitizer, HtmlSanitizer>(x =>
             {
                 // Configure sanitizer rules as needed here.
@@ -95,14 +98,11 @@ namespace GrowIoT
             });
 
             services.AddBlazoredToast();
-            services.AddScoped<IGrowboxManager, GrowboxManager>();
             services.AddLocalization(opts => opts.ResourcesPath = "Resources");
             services.AddGrowHealthChecks();
             services.AddSyncfusionBlazor();
             services.AddSingleton<CircuitHandler>(new CircuitHandlerService());
-
-           
-
+            
 
         }
 

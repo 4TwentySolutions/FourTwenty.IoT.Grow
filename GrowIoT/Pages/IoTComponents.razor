@@ -39,9 +39,9 @@
                         <div class="card-header">@module.Name</div>
                         <div class="card-body">
                             <h6 class="card-subtitle mb-2 text-muted">@module.Type</h6>
-                            @if (!string.IsNullOrEmpty(module.CurrentValue))
+                            @if (!string.IsNullOrEmpty(module.CurrentValueString))
                             {
-                                <p class="card-text">@((MarkupString)module.CurrentValue)</p>
+                                <p class="card-text">@((MarkupString)module.CurrentValueString)</p>
                             }
                             <p class="card-text"><b>Pin(s):</b>@string.Join(",", module.Pins).</p>
                         </div>

@@ -26,7 +26,7 @@ namespace GrowIoT.Controllers
         {
             try
             {
-                var currentConfig = _ioTConfigService.GetConfig();
+                var currentConfig = new ConfigDto();//_ioTConfigService.GetConfig();
                 return new JsonResult(currentConfig);
             }
             catch (Exception e)
@@ -42,7 +42,7 @@ namespace GrowIoT.Controllers
         {
             try
             {
-                var currentConfig = _ioTConfigService.GetConfig();
+                var currentConfig = new ConfigDto();//_ioTConfigService.GetConfig();
                 if (currentConfig != null)
                 {
                     return new JsonResult(currentConfig.CurrentVersion);

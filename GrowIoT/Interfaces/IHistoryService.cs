@@ -1,13 +1,12 @@
 ﻿using Infrastructure.Entities;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using FourTwenty.IoT.Connect.Interfaces;
 
 namespace GrowIoT.Interfaces
 {
-    public interface IHistoryService : IInitializableService
+    public interface IHistoryService : IInitializeService<IList<IModule>>
     {
-        List<ModuleHistoryItem> GetModuleHistory(int moduleId);
+        Task<ICollection<ModuleHistoryItem>> GetModuleHistory(int moduleId);
     }
 }

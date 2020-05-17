@@ -34,23 +34,35 @@
                             <div class="d-flex flex-column justify-content-center align-content-center">
                                 <SfChart @ref="HistoryChart"
                                          Width="100%"
-                                         Height="450px">
-                                    <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category" />
+                                         Height="450px"
+                                         DataSource="@HistoryData">
+                                    <ChartPrimaryXAxis Title="Time"
+                                                       ValueType="Syncfusion.Blazor.Charts.ValueType.DateTime" />
+                                    <ChartPrimaryYAxis ValueType="@YAxisType"
+                                                       Maximum="@Maximum"
+                                                       Minimum="@Minimum" />
 
-                                    <ChartTooltipSettings Enable="true" Format="${series.name} ${point.x} : ${point.y}">
+                                    <ChartTooltipSettings Enable="true" Format="${series.name} ${point.x} : ${point.y} ">
                                     </ChartTooltipSettings>
 
                                     <ChartSeriesCollection>
-                                        <ChartSeries DataSource="@HistoryData" XName="X" YName="Y" PointColorMapping="Color" Type="@ChartType">
-                                            <ChartMarker Visible="true" Height="5" Width="5">
-                                                <ChartDataLabel Visible="true" Name="Text">
-                                                </ChartDataLabel>
+                                        <ChartSeries XName="X" YName="Y" PointColorMapping="ColorY" Fill="#0277BD" Type="@ChartType">
+                                            @if (_isInitialized)
+                                            {
+                                                <ChartSeriesAnimation Enable="false" />
+                                            }
+
+                                            <ChartMarker Visible="true">
+                                                <ChartDataLabel Visible="true" Name="TextY" />
                                             </ChartMarker>
                                         </ChartSeries>
-                                        <ChartSeries DataSource="@HistoryData" XName="X" YName="Y2" PointColorMapping="Color2" Type="@ChartType">
-                                            <ChartMarker Visible="true" Height="5" Width="5">
-                                                <ChartDataLabel Visible="true" Name="Text2">
-                                                </ChartDataLabel>
+                                        <ChartSeries XName="X" YName="Y2" PointColorMapping="ColorY2" Fill="#F57C00" Type="@ChartType">
+                                            @if (_isInitialized)
+                                            {
+                                                <ChartSeriesAnimation Enable="false" />
+                                            }
+                                            <ChartMarker Visible="true">
+                                                <ChartDataLabel Visible="true" Name="TextY2" />
                                             </ChartMarker>
                                         </ChartSeries>
                                     </ChartSeriesCollection>

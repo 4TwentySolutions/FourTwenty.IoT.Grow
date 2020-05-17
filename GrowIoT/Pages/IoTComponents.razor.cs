@@ -1,22 +1,23 @@
 ﻿using System;
 using Blazored.Toast.Services;
-using FourTwenty.IoT.Connect.Entities;
 using GrowIoT.ViewModels;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Localization;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using FourTwenty.IoT.Connect.Interfaces;
+using GrowIoT.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 
 namespace GrowIoT.Pages
 {
     [Authorize]
-    public class IoTComponentsBase : BaseGrowComponent
+    public class IoTComponentsBase : BaseGrowComponent, IDisposable
     {
         #region fields
+
+        private bool _isInitialized;
         [Inject] protected ILogger<IoTComponentsBase> Logger { get; private set; }
         [Inject] protected IStringLocalizer<AppResources> Localizer { get; private set; }
         [Inject] protected IToastService ToastService { get; private set; }
@@ -30,30 +31,21 @@ namespace GrowIoT.Pages
 
         protected override async Task OnInitializedAsync()
         {
+            if (_isInitialized) return;
+
             Modules = (await BoxManager.GetModules()).ToList();
-            //var workedModules = ConfigService.GetModules();
             foreach (var moduleVm in Modules)
             {
-                moduleVm.DataReceived += OnDataReceived;
+                moduleVm.Subscribe();
+                moduleVm.VisualStateChanged += OnVisualStateChangeRequestReceived;
             }
             await base.OnInitializedAsync();
+            _isInitialized = true;
         }
 
-        private async void OnDataReceived(object? sender, SensorEventArgs e)
+        private async void OnVisualStateChangeRequestReceived(object? sender, VisualStateEventArgs e)
         {
-            Logger.LogInformation($"Data received: {e.Data}");
-            await InvokeAsync(() =>
-            {
-                try
-                {
-                    StateHasChanged();
-                }
-                catch (Exception exception)
-                {
-                    Logger.LogError(exception, nameof(OnDataReceived));
-                }
-
-            });
+            await InvokeAsync(StateHasChanged);
         }
 
         protected async void Delete(ModuleVm module)
@@ -69,5 +61,32 @@ namespace GrowIoT.Pages
                 IsLoading = false;
             }
         }
+
+        #region IDisposable Support
+        private bool _disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposedValue) return;
+            if (disposing)
+            {
+                if (Modules != null && Modules.Any())
+                    foreach (ModuleVm moduleVm in Modules)
+                    {
+                        moduleVm.Unsubscribe();
+                        moduleVm.VisualStateChanged -= OnVisualStateChangeRequestReceived;
+                    }
+            }
+
+
+            _disposedValue = true;
+        }
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+        }
+        #endregion
     }
 }
