@@ -34,8 +34,7 @@
                             <div class="d-flex flex-column justify-content-center align-content-center">
                                 <SfChart @ref="HistoryChart"
                                          Width="100%"
-                                         Height="450px"
-                                         DataSource="@HistoryData">
+                                         Height="450px">
                                     <ChartPrimaryXAxis Title="Time"
                                                        ValueType="Syncfusion.Blazor.Charts.ValueType.DateTime" />
                                     <ChartPrimaryYAxis ValueType="@YAxisType"
@@ -46,25 +45,38 @@
                                     </ChartTooltipSettings>
 
                                     <ChartSeriesCollection>
-                                        <ChartSeries XName="X" YName="Y" PointColorMapping="ColorY" Fill="#0277BD" Type="@ChartType">
-                                            @if (_isInitialized)
+                                        @if (Module != null)
+                                        {
+                                            switch (Module.Type)
                                             {
-                                                <ChartSeriesAnimation Enable="false" />
+                                                case FourTwenty.IoT.Connect.Constants.ModuleType.Temperature:
+                                                case FourTwenty.IoT.Connect.Constants.ModuleType.HumidityAndTemperature:
+                                                    <ChartSeries XName="Date" YName="Humidity" PointColorMapping="HumidityColor" Fill="#0277BD" Type="@ChartType" DataSource="@TemperatureHistoryData">
+                                                        <ChartSeriesAnimation Enable="false" />
+                                                        <ChartMarker Visible="true">
+                                                            <ChartDataLabel Visible="true" Name="HumidityText" />
+                                                        </ChartMarker>
+                                                    </ChartSeries>
+                                                    <ChartSeries XName="Date" YName="Temperature" PointColorMapping="TemperatureColor" Fill="#F57C00" Type="@ChartType" DataSource="@TemperatureHistoryData">
+                                                        <ChartSeriesAnimation Enable="false" />
+                                                        <ChartMarker Visible="true">
+                                                            <ChartDataLabel Visible="true" Name="TemperatureText" />
+                                                        </ChartMarker>
+                                                    </ChartSeries>
+                                                    break;
+                                                case FourTwenty.IoT.Connect.Constants.ModuleType.Relay:
+                                                    foreach(var pin in Module.Pins)
+                                                    {
+                                                        <ChartSeries XName="Date" YName="Pin" PointColorMapping="StateColor" Type="@ChartType" DataSource="@HistoryData[pin]">
+                                                            <ChartSeriesAnimation Enable="false" />
+                                                            <ChartMarker Visible="true">
+                                                                <ChartDataLabel Visible="true" Name="Description" />
+                                                            </ChartMarker>
+                                                        </ChartSeries>
+                                                    }
+                                                    break;
                                             }
-
-                                            <ChartMarker Visible="true">
-                                                <ChartDataLabel Visible="true" Name="TextY" />
-                                            </ChartMarker>
-                                        </ChartSeries>
-                                        <ChartSeries XName="X" YName="Y2" PointColorMapping="ColorY2" Fill="#F57C00" Type="@ChartType">
-                                            @if (_isInitialized)
-                                            {
-                                                <ChartSeriesAnimation Enable="false" />
-                                            }
-                                            <ChartMarker Visible="true">
-                                                <ChartDataLabel Visible="true" Name="TextY2" />
-                                            </ChartMarker>
-                                        </ChartSeries>
+                                        }
                                     </ChartSeriesCollection>
                                 </SfChart>
                             </div>
