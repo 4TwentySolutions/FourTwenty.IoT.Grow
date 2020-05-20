@@ -7,6 +7,6 @@ namespace GrowIoT.Interfaces
 {
     public interface IHistoryService : IInitializeService<IList<IModule>>
     {
-        Task<ICollection<ModuleHistoryItem>> GetModuleHistory(int moduleId);
+        Task<ICollection<ModuleHistoryItem>> GetModuleHistory(int moduleId, int count = 50);
     }
 }

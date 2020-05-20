@@ -20,11 +20,13 @@ namespace GrowIoT.Services
         private readonly ILogger _logger;
         private SemaphoreSlim _locker = new SemaphoreSlim(1, 1);
         private IHistoryDataContext _historyDataContext;
+        private readonly DbContextOptions<HistoryDbContext> _contextOptions;
 
         public HistoryService(DbContextOptions<HistoryDbContext> options, ILogger<HistoryService> logger)
         {
             _logger = logger;
             _historyDataContext = new HistoryDbContext(options);
+            _contextOptions = options;
         }
 
         private async void RelayOnStateChanged(object? sender, RelayEventArgs e)
@@ -104,19 +106,15 @@ namespace GrowIoT.Services
             return new ValueTask();
         }
 
-        public async Task<ICollection<ModuleHistoryItem>> GetModuleHistory(int moduleId)
+        public async Task<ICollection<ModuleHistoryItem>> GetModuleHistory(int moduleId, int count = 50)
         {
-            try
-            {
-                await _locker.WaitAsync();
-                return await _historyDataContext.Histories.Where(x => x.ModuleId == moduleId)
+
+            await using var context = new HistoryDbContext(_contextOptions);
+            return await context.Histories.Where(x => x.ModuleId == moduleId)
                 .OrderBy(x => x.Date)
+                .Take(count)
                 .ToListAsync();
-            }
-            finally
-            {
-                _locker.Release();
-            }
+
 
         }
 
