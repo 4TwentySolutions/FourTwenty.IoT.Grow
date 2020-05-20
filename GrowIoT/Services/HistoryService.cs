@@ -106,11 +106,11 @@ namespace GrowIoT.Services
             return new ValueTask();
         }
 
-        public async Task<ICollection<ModuleHistoryItem>> GetModuleHistory(int moduleId, int count = 50)
+        public async Task<ICollection<ModuleHistoryItem>> GetModuleHistory(int moduleId, DateTime dateTo, int count = 50)
         {
 
             await using var context = new HistoryDbContext(_contextOptions);
-            return await context.Histories.Where(x => x.ModuleId == moduleId)
+            return await context.Histories.Where(x => x.ModuleId == moduleId && x.Date > dateTo)
                 .OrderBy(x => x.Date)
                 .Take(count)
                 .ToListAsync();

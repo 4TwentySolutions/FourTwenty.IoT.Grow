@@ -92,7 +92,7 @@ namespace GrowIoT.Pages
 
             if (Module.Type == ModuleType.HumidityAndTemperature)
             {
-                var moduleHistory = (await HistoryService.GetModuleHistory(Module.Id, 50)).ToList();
+                var moduleHistory = (await HistoryService.GetModuleHistory(Module.Id, DateTime.Now.AddHours(-2), 50)).ToList();
                 var historyData = new List<WeatherChartData>();
                 foreach (var item in moduleHistory)
                 {
@@ -105,7 +105,7 @@ namespace GrowIoT.Pages
 
             if (Module.Type == ModuleType.Relay)
             {
-                var moduleHistory = (await HistoryService.GetModuleHistory(Module.Id, 50 * Module.Pins.Length)).ToList();
+                var moduleHistory = (await HistoryService.GetModuleHistory(Module.Id, DateTime.Now.AddHours(-2), 50 * Module.Pins.Length)).ToList();
                 foreach (var pin in Module.Pins)
                 {
                     HistoryData.Add(pin, new ObservableCollection<RelayChartData>());
