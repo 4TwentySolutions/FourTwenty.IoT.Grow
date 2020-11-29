@@ -10,14 +10,31 @@
             "label": "build",  
             "dependsOn": ["clean"],    
             "windows": {
-                "command": "dotnet publish -r linux-arm -o bin/linux-arm/publish ${workspaceFolder}\\GrowIoT\\GrowIoT.csproj",
+                "command": "dotnet publish ${workspaceFolder}\\GrowIoT\\GrowIoT.csproj -o builds --self-contained false",
                 "type": "shell",
             }
         },
         {
-            "label": "publish",            
+            "label": "publish",  
+            "dependsOn": ["clean"],    
             "windows": {
-                "command": "bash -c 'rsync -rvuzp ${command:extension.vscode-wsl-workspaceFolder}/bin/linux-arm/publish/ pi@192.168.0.105:~/${workspaceFolderBasename}'",
+                "command": "dotnet publish ${workspaceFolder}\\GrowIoT\\GrowIoT.csproj",
+                "type": "shell",
+            }
+        },   
+        {   
+            "label": "exportSync",    
+            "dependsOn": ["build"],          
+            "windows": {
+                "command": "bash -c \"rsync -rvuzp -e 'ssh -i /mnt/c/Tools/id_rsa_public' -P --stats /mnt/c/Projects/Production/FourTwenty.IoT/builds/* pi@192.168.0.153:~/GrowIoT\"",
+                "type": "shell",
+            }
+        } ,    
+        {
+            "label": "export",    
+            "dependsOn": ["publish"],          
+            "windows": {
+                "command": "c:/tools/putty/pscp.exe -r -P 22 -i c:/Users/kip_o/.ssh/id_rsa c:/Projects/Production/FourTwenty.IoT/GrowIoT/bin/Debug/netcoreapp3.1/* pi@192.168.0.153:/home/pi/GrowIoT",
                 "type": "shell",
             }
         }

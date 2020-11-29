@@ -15,6 +15,7 @@ using GrowIoT.ViewModels;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Logging;
 using Quartz.Impl;
+using System.Device.Gpio.Drivers;
 
 #if !DebugLocalWin
 using FourTwenty.IoT.Server.Components.Relays;
@@ -23,15 +24,14 @@ using FourTwenty.IoT.Server.Components.Sensors;
 
 namespace GrowIoT.Services
 {
-    //TODO rename to something like IotRuntimeService or similar
-    public class IoTConfigService : IIoTConfigService, IDisposable
+    public class IoTRuntimeService : IIoTConfigService, IDisposable
     {
         private IList<IModule> _modules;
 
-        private readonly ILogger<IoTConfigService> _logger;
+        private readonly ILogger<IoTRuntimeService> _logger;
         private GpioController _gpioController;
 
-        public IoTConfigService(ILogger<IoTConfigService> logger)
+        public IoTRuntimeService(ILogger<IoTRuntimeService> logger)
         {
             _logger = logger;
 #if !DebugLocalWin
@@ -72,7 +72,7 @@ namespace GrowIoT.Services
 
                         var cronRule = new CronRule(ruleData.Job, ruleData.CronExpression, scheduler)
                         {
-                            Period = TimeSpan.FromSeconds(ruleData.Delay.GetHashCode()),
+                            Period = TimeSpan.FromSeconds(ruleData.Delay.GetValueOrDefault()),
                             Pin = moduleRule.Pin
                         };
 
@@ -80,54 +80,39 @@ namespace GrowIoT.Services
                     }
                 }
 
+                //TODO create helper or service that will be handle the modules creation process
+                //mod = new MockModule(rules, new[] { module.Pins.FirstOrDefault() });
+                //mod = new MockRelay(rules, module.Pins);
+                #region Module creation
 
-                if (module.Type == ModuleType.HumidityAndTemperature)
+                switch (module.Type)
                 {
-#if DebugLocalWin
-                    mod = new MockModule(rules, new[] { module.Pins.FirstOrDefault() })
-                    {
-                        Id = module.Id,
-                        Name = nameof(MockModule)
-                    };
-#else
-                    mod = new DhtSensor(module.Pins.FirstOrDefault(), _gpioController, rules)
-                    {
-                        Id = module.Id,
-                        Name = module.Name
-                    };
-#endif
-
-                }
-
-                if (module.Type == ModuleType.Relay)
-                {
-#if DebugLocalWin
-                    mod = new MockRelay(rules, module.Pins)
-                    {
-                        Id = module.Id,
-                        Name = nameof(MockRelay)
-                    };
-#else
-                    if (module.Pins?.Length >= 2)
-                    {
-                        mod = new Relay(module.Pins, _gpioController)
-                        {
-                            Id = module.Id,
-                            Name = module.Name,
-                            Rules = rules
-                        };
-                    }
-#endif
+                    case ModuleType.HumidityAndTemperature:
+                        mod = new DhtSensor(module.Pins.FirstOrDefault(), _gpioController);
+                        break;
+                    case ModuleType.Relay:
+                        mod = new Relay(module.Pins, _gpioController);
+                        break;
+                    case ModuleType.RangeFinder:
+                        mod = new RangeFinderSensor(module.Pins.FirstOrDefault(), module.Pins.LastOrDefault(), _gpioController);
+                        break;
                 }
 
                 if (mod != null)
                 {
+                    mod.Id = module.Id;
+                    mod.Name = module.Name;
+                    mod.Rules = rules;
+
                     //if (mod is ISensor sensor)
                     //    sensor.DataReceived += SensorOnDataReceived;
                     //if (mod is IRelay relay)
                     //    relay.StateChanged += RelayOnStateChanged;
                     _modules.Add(mod);
                 }
+
+                #endregion
+
             }
 
             IsInitialized = true;

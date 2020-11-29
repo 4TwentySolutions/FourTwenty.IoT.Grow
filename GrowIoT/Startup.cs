@@ -35,6 +35,7 @@ using Serilog;
 using Syncfusion.Blazor;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 using Microsoft.AspNetCore.Components.Server.Circuits;
+using System.Device.Gpio.Drivers;
 
 namespace GrowIoT
 {
@@ -80,13 +81,13 @@ namespace GrowIoT
             services.AddAutoMapper(GetType());
             services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
 
-            services.AddSingleton<IIoTConfigService, IoTConfigService>();
+            services.AddSingleton<IIoTConfigService, IoTRuntimeService>();
             services.AddSingleton<IHistoryService, HistoryService>();
             services.AddScoped<IJobsService, JobsService>();
             services.AddScoped<IHubService, HubService>();
             services.AddScoped<IMemoryMetricsClient, MemoryMetricsClient>();
             services.AddScoped<IGrowboxManager, GrowboxManager>();
-            services.AddSingleton(provider => new GpioController(PinNumberingScheme.Logical));
+            services.AddSingleton(provider => new GpioController(PinNumberingScheme.Logical, new RaspberryPi3Driver()));
 
             services.AddScoped<IHtmlSanitizer, HtmlSanitizer>(x =>
             {

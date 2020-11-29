@@ -2,6 +2,10 @@
   "iisSettings": {
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
+    "iis": {
+      "applicationUrl": "http://localhost/GrowIoT",
+      "sslPort": 0
+    },
     "iisExpress": {
       "applicationUrl": "http://localhost:63772",
       "sslPort": 0
@@ -20,7 +24,8 @@
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+      },
+      "nativeDebugging": false
     }
   }
 }

@@ -29,7 +29,7 @@ namespace GrowIoT
             var hostUrl = configuration["hosturl"];
 #if !DebugLocalWin
             if (string.IsNullOrEmpty(hostUrl))
-               hostUrl = $"http://0.0.0.0:5000";
+               hostUrl = $"http://0.0.0.0:4200";
 #endif
 
 

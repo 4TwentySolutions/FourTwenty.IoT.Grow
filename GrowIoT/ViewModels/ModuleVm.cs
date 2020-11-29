@@ -7,6 +7,7 @@ using FourTwenty.IoT.Connect.Entities;
 using FourTwenty.IoT.Connect.Interfaces;
 using FourTwenty.IoT.Server.Components.Sensors;
 using GrowIoT.Common;
+using FourTwenty.IoT.Server.Models;
 
 namespace GrowIoT.ViewModels
 {
@@ -81,6 +82,16 @@ namespace GrowIoT.ViewModels
                         if (e.Data is DhtData moduleData && !double.IsNaN(moduleData.Temperature))
                         {
                             CurrentValueString = $"<b><i class='fas fa-thermometer-half'></i>{moduleData.Temperature}&#8451;</b><br/><b><i class='fas fa-tint'></i>{moduleData.Humidity}%</b>";
+                        }
+
+
+                        break;
+                    }
+                case ModuleType.RangeFinder:
+                    {
+                        if (e.Data is RangeFinderData moduleData && !double.IsNaN(moduleData.Distance))
+                        {
+                            CurrentValueString = $"<b><i class='fas fa-arrows-alt-v'></i>{moduleData.Distance}</b>";
                         }
 
 

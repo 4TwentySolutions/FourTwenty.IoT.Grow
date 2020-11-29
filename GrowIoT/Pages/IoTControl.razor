@@ -65,7 +65,7 @@
                                                     </ChartSeries>
                                                     break;
                                                 case FourTwenty.IoT.Connect.Constants.ModuleType.Relay:
-                                                    foreach(var pin in Module.Pins)
+                                                    foreach (var pin in Module.Pins)
                                                     {
                                                         <ChartSeries XName="Date" YName="Pin" PointColorMapping="StateColor" Type="@ChartType" DataSource="@HistoryData[pin]">
                                                             <ChartSeriesAnimation Enable="false" />
@@ -74,6 +74,16 @@
                                                             </ChartMarker>
                                                         </ChartSeries>
                                                     }
+                                                    break;
+
+                                                case FourTwenty.IoT.Connect.Constants.ModuleType.RangeFinder:
+                                                        <ChartSeries XName="Date" YName="Distance" PointColorMapping="Blue" Type="@ChartType" DataSource="@RangeFinderHistoryData">
+                                                            <ChartSeriesAnimation Enable="false" />
+                                                            <ChartMarker Visible="true">
+                                                                <ChartDataLabel Visible="true" Name="DistanceText" />
+                                                            </ChartMarker>
+                                                        </ChartSeries>
+                                                    
                                                     break;
                                             }
                                         }

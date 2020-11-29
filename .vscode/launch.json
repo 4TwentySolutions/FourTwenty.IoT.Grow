@@ -1,35 +1,27 @@
 {
     "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Publish Only",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "publish",
-            "program": "~/${workspaceFolderBasename}/GrowIoT",
-            "cwd": "~/${workspaceFolderBasename}",
-            "stopAtEntry": false,
-            "console": "internalConsole",            
-            "windows": {
-                "pipeTransport": {
-                    "pipeCwd": "${workspaceRoot}",
-                    "pipeProgram": "plink",
-                    "pipeArgs": [
-                        "-ssh",
-                        "-pw",
-                        "123456Qq@",
-                        "pi@192.168.0.105"
-                    ],
-                    "debuggerPath": "~/vsdbg/vsdbg"
-                }
-            }
-        }        
-    ],
-    "compounds": [
-        {
-          "name": "Build Deploy Debug",
-          "configurations": ["Publish Only"],
-          "preLaunchTask": "build"
-        },
-      ]
+   "configurations": [
+    {
+        "name": "Remote Launch & Debug",
+        "type": "coreclr",
+        "request": "launch",
+        "program": "~/dotnet/dotnet",
+        "args": ["GrowIoT.dll"],
+        "preLaunchTask": "exportSync",
+        "cwd": "~/GrowIoT",
+        "stopAtEntry": false,
+        "console": "internalConsole",
+        "pipeTransport": {
+            "pipeCwd": "${workspaceRoot}",
+            "pipeProgram": "ssh",
+            "pipeArgs": [
+                "-T",
+                "pi@192.168.0.153",
+                "-i",
+                "c:/Users/kip_o/.ssh/id_rsa"
+            ],
+            "debuggerPath": "~/vsdbg/vsdbg"
+        }
+    },
+   ]
 }
