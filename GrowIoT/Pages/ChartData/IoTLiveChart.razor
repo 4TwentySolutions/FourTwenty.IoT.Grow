@@ -1,4 +1,4 @@
-﻿@page "/iotcomponents/data/{Id:int}"
+﻿@page "/iotcomponents/live/{Id:int}"
 @using Microsoft.Extensions.Localization
 @using Syncfusion.Blazor.Charts
 @inherits BaseGrowComponent
@@ -8,16 +8,12 @@
 <div class="container">
     <div class="row">
         <div class="col">
-            <h1>@Localizer["Component data"]</h1>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><NavLink href="/">@Localizer["Home"]</NavLink></li>
                     <li class="breadcrumb-item"><NavLink href="/iotcomponents">@Localizer["Components"]</NavLink></li>
-                    <li class="breadcrumb-item active" aria-current="page">@Localizer["Component data"]</li>
+                    <li class="breadcrumb-item">@(Module?.Name)</li>
+                    <li class="breadcrumb-item active" aria-current="page">@Localizer["Live Chart"]</li>
                 </ol>
             </nav>
             <div class="card mt-4">
@@ -30,7 +26,7 @@
                     }
                     <div class="row">
                         <div class="col-12 text-center ">
-                            <h3>@Localizer["Real-time data"]</h3>
+                            <h3>@Localizer["Live Chart"]</h3>
                             <div class="d-flex flex-column justify-content-center align-content-center">
                                 <SfChart @ref="HistoryChart"
                                          Width="100%"
@@ -90,10 +86,8 @@
                                     </ChartSeriesCollection>
                                 </SfChart>
                             </div>
-
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>

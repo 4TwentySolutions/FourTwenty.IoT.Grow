@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using FourTwenty.IoT.Connect.Models;
 using Infrastructure.Data;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -29,49 +30,24 @@ namespace GrowIoT.Services
             _contextOptions = options;
         }
 
-        private async void RelayOnStateChanged(object? sender, RelayEventArgs e)
-        {
-            if (!(sender is IoTComponent component))
-                return;
-
-            try
-            {
-                await _locker.WaitAsync();
-
-                await _historyDataContext.Histories.AddAsync(new ModuleHistoryItem
-                {
-                    ModuleId = component.Id,
-                    Date = DateTime.Now,
-                    Data = JsonConvert.SerializeObject(e.Data)
-                });
-
-                await _historyDataContext.CommitAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, nameof(SensOnDataReceived));
-            }
-            finally
-            {
-                _locker.Release();
-            }
-        }
-
-        private async void SensOnDataReceived(object? sender, SensorEventArgs e)
+        private async void SensOnDataReceived(object? sender, ModuleResponseEventArgs e)
         {
             if (!(sender is IoTComponent component))
                 return;
             try
             {
-                await _locker.WaitAsync();
-                await _historyDataContext.Histories.AddAsync(new ModuleHistoryItem
-                {
-                    ModuleId = component.Id,
-                    Date = DateTime.Now,
-                    Data = JsonConvert.SerializeObject(e.Data)
-                });
-                await _historyDataContext.CommitAsync();
+	            await _locker.WaitAsync();
 
+	            if (e.Data.IsSuccess)
+                {
+	                await _historyDataContext.Histories.AddAsync(new ModuleHistoryItem
+	                {
+		                ModuleId = component.Id,
+		                Date = DateTime.Now,
+		                Data = JsonConvert.SerializeObject(e.Data)
+	                });
+	                await _historyDataContext.CommitAsync();
+                }
             }
             catch (Exception ex)
             {
@@ -97,7 +73,7 @@ namespace GrowIoT.Services
                         sensor.DataReceived += SensOnDataReceived;
                         break;
                     case IRelay relay:
-                        relay.StateChanged += RelayOnStateChanged;
+                        relay.StateChanged += SensOnDataReceived;
                         break;
                 }
             }
@@ -106,14 +82,38 @@ namespace GrowIoT.Services
             return new ValueTask();
         }
 
-        public async Task<ICollection<ModuleHistoryItem>> GetModuleHistory(int moduleId, DateTime dateTo, int count = 50)
+        public async Task<List<ModuleHistoryItem>> GetModuleHistory(int moduleId, DateTime dateTo, int count = 50)
         {
-
-            await using var context = new HistoryDbContext(_contextOptions);
+	        await using var context = new HistoryDbContext(_contextOptions);
             return await context.Histories.Where(x => x.ModuleId == moduleId && x.Date > dateTo)
                 .OrderBy(x => x.Date)
                 .Take(count)
                 .ToListAsync();
+        }
+
+        public async Task<List<ModuleHistoryItem>> GetModuleHistory(int moduleId, int? count = 50)
+        {
+	        await using var context = new HistoryDbContext(_contextOptions);
+
+	        var queryable = context.Histories.Where(x => x.ModuleId == moduleId).OrderBy(x => x.Date);
+
+	        if (count.HasValue)
+		        queryable.Take(count.GetValueOrDefault(50));
+
+	        return await queryable.ToListAsync();
+        }
+
+        public async Task<List<ModuleHistoryItem>> GetModuleHistory(int moduleId, DateTime dateFrom, DateTime dateTo, int? count = 50)
+        {
+            await using var context = new HistoryDbContext(_contextOptions);
+
+            var queryable = context.Histories.Where(x => x.ModuleId == moduleId && x.Date < dateTo && x.Date > dateFrom)
+	            .OrderBy(x => x.Date);
+
+            if (count.HasValue) 
+	            queryable.Take(count.GetValueOrDefault(50));
+
+            return await queryable.ToListAsync();
 
 
         }

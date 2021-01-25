@@ -16,7 +16,11 @@ using Newtonsoft.Json;
 using Microsoft.Extensions.Logging;
 using Quartz.Impl;
 using System.Device.Gpio.Drivers;
-
+using FourTwenty.IoT.Server.Components.Sensors;
+using FourTwenty.IoT.Server.Components.Relays;
+using GrowIoT.Extensions;
+using Quartz;
+using Quartz.Impl.Matchers;
 #if !DebugLocalWin
 using FourTwenty.IoT.Server.Components.Relays;
 using FourTwenty.IoT.Server.Components.Sensors;
@@ -66,14 +70,17 @@ namespace GrowIoT.Services
 
                 foreach (var moduleRule in module.Rules)
                 {
-                    if (moduleRule.RuleType == RuleType.CronRule)
+	                if (moduleRule.RuleType == RuleType.CronRule)
                     {
                         var ruleData = JsonConvert.DeserializeObject<CronRuleData>(moduleRule.RuleContent) ?? new CronRuleData();
 
                         var cronRule = new CronRule(ruleData.Job, ruleData.CronExpression, scheduler)
                         {
                             Period = TimeSpan.FromSeconds(ruleData.Delay.GetValueOrDefault()),
-                            Pin = moduleRule.Pin
+                            Pin = moduleRule.Pin,
+                            ModuleId = module.Id,
+                            IsEnabled = moduleRule.IsEnabled,
+                            Id = moduleRule.Id
                         };
 
                         rules.Add(cronRule);
@@ -104,10 +111,6 @@ namespace GrowIoT.Services
                     mod.Name = module.Name;
                     mod.Rules = rules;
 
-                    //if (mod is ISensor sensor)
-                    //    sensor.DataReceived += SensorOnDataReceived;
-                    //if (mod is IRelay relay)
-                    //    relay.StateChanged += RelayOnStateChanged;
                     _modules.Add(mod);
                 }
 
@@ -118,20 +121,59 @@ namespace GrowIoT.Services
             IsInitialized = true;
         }
 
-        private void RelayOnStateChanged(object? sender, RelayEventArgs e)
-        {
+        public void UpdateMuuleRuleState(int moduleId, int ruleId, bool isEnabled)
+		{
+			if (moduleId > 0 && ruleId > 0)
+			{
+				var module = _modules.FirstOrDefault(d => d.Id == moduleId);
 
-        }
-
-        private void SensorOnDataReceived(object? sender, SensorEventArgs e)
-        {
-
-        }
+				if (module != null)
+				{
+					var rule = module.Rules.FirstOrDefault(x => x.Id == ruleId);
+					if (rule != null)
+					{
+						rule.IsEnabled = isEnabled;
+					}
+				}
+			}
+		}
 
         public IModule GetModule(int id)
         {
             return _modules.FirstOrDefault(d => d.Id == id);
         }
+
+        public async Task ControlModuleJobs(int moduleId, WorkState workState)
+        {
+	        var module = _modules.FirstOrDefault(d => d.Id == moduleId);
+	        var scheduler = await StdSchedulerFactory.GetDefaultScheduler();
+	        if (module != null)
+	        {
+		        switch (workState)
+		        {
+			        case WorkState.Running:
+				        if (module.RulesWorkState == WorkState.Stopped)
+				        {
+					       module.Rules?.Execute();
+				        }
+				        else
+				        {
+					        await scheduler.ResumeJobs(GroupMatcher<JobKey>.GroupEquals(moduleId.ToString()));
+				        }
+				        break;
+			        case WorkState.Paused:
+				        await scheduler.PauseJobs(GroupMatcher<JobKey>.GroupEquals(moduleId.ToString()));
+				        break;
+			        case WorkState.Stopped:
+				        var jobKeys = await scheduler.GetJobKeys(GroupMatcher<JobKey>.GroupEquals(moduleId.ToString()));
+				        await scheduler.DeleteJobs(jobKeys);
+				        break;
+		        }
+
+		        module.RulesWorkState = workState;
+	        }
+        }
+
 
         #region IDisposable Support
         private bool _disposedValue; // To detect redundant calls

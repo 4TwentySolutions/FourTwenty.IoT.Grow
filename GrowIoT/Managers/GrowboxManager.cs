@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using FourTwenty.IoT.Connect.Constants;
 using FourTwenty.IoT.Connect.Entities;
 using FourTwenty.IoT.Connect.Models;
 using GrowIoT.Interfaces;
@@ -99,7 +100,10 @@ namespace GrowIoT.Managers
         {
             var mapped = _mapper.Map<IReadOnlyList<ModuleVm>>(await _context.Modules.ToListAsync());
             foreach (var moduleVm in mapped)
-                moduleVm.IotModule = _ioTService.GetModule(moduleVm.Id);
+            {
+	            moduleVm.IotModule = _ioTService.GetModule(moduleVm.Id);
+            }
+               
             return mapped;
         }
     }

@@ -23,10 +23,12 @@ namespace GrowIoT.Extensions
                 var growBox = await serviceProvider.GetService<IGrowboxManager>().GetBoxWithRules();
                 var configService = serviceProvider.GetService<IIoTConfigService>();
                 var historyService = serviceProvider.GetService<IHistoryService>();
+                var jobsService = serviceProvider.GetService<IJobsService>();
+
                 await configService.Initialize(growBox);
                 await historyService.Initialize(configService.GetModules());
-                var jobsService = serviceProvider.GetService<IJobsService>();
                 await jobsService.StartJobs(configService.GetModules());
+
                 logger.LogInformation($"{nameof(InitIoT)} Jobs started");
 
             }

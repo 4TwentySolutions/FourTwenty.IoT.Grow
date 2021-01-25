@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Device.Gpio;
 using System.Linq;
+using FourTwenty.IoT.Connect.Models;
 
 namespace GrowIoT.Models.Tests
 {
@@ -12,7 +13,7 @@ namespace GrowIoT.Models.Tests
     {
         public IDictionary<int, RelayState> States { get; }
 
-        public event EventHandler<RelayEventArgs> StateChanged;
+        public event EventHandler<ModuleResponseEventArgs> StateChanged;
 
         public MockRelay(IReadOnlyCollection<int> pins) : base(pins, null)
         {
@@ -30,7 +31,7 @@ namespace GrowIoT.Models.Tests
                 return;
 
             States[pin] = value == PinValue.Low ? RelayState.Opened : RelayState.Closed;
-            StateChanged?.Invoke(this, new RelayEventArgs(new RelayData(pin, States[pin])));
+            StateChanged?.Invoke(this, new ModuleResponseEventArgs(new ModuleResponse<RelayData>(true, new RelayData(pin, States[pin]))));
         }
     }
 }

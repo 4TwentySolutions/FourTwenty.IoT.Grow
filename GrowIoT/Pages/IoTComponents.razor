@@ -1,10 +1,11 @@
 ﻿@page "/iotcomponents"
 @using FourTwenty.Core.Data.Interfaces
+@using FourTwenty.IoT.Connect.Constants
 @using FourTwenty.IoT.Connect.Entities
 @using Microsoft.Extensions.Localization
 @attribute [Authorize]
 @inherits IoTComponentsBase
-<div class="container mt-5">
+<div class="container">
     <div class="row">
         <div class="col">
             <nav aria-label="breadcrumb">
@@ -20,7 +21,7 @@
             <h3>@Localizer["IoT Components"]</h3>
         </div>
         <div class="col-auto">
-            <NavLink class="btn btn-primary" href="iotcomponents/create">@Localizer["Add component"]</NavLink>
+            <NavLink class="btn btn-dark" href="iotcomponents/create">@Localizer["Add component"]</NavLink>
         </div>
     </div>
     <div class="row">
@@ -36,19 +37,63 @@
             {
                 <div class="col-12 col-md-4">
                     <div class="card">
-                        <div class="card-header">@module.Name</div>
+                        <div class="card-header">
+                            <div class="d-flex flex-row justify-content-between align-items-center">
+                                <div>
+                                    @module.Name
+                                    <div class="card-subtitle card-header-subtitle text-muted">@module.Type.ToString().ToLower()</div>
+                                </div>
+
+                                <span class="badge @module.BadgeIcon">@module.State.ToString()</span>
+                            </div>
+                        </div>
                         <div class="card-body">
-                            <h6 class="card-subtitle mb-2 text-muted">@module.Type</h6>
-                            @if (!string.IsNullOrEmpty(module.CurrentValueString))
-                            {
-                                <p class="card-text">@((MarkupString)module.CurrentValueString)</p>
-                            }
-                            <p class="card-text"><b>Pin(s):</b>@string.Join(",", module.Pins).</p>
+                            <div class="row">
+                                <div class="col-6 d-flex align-items-center">
+                                    <p class="card-text"><b>Pin(s):</b>@string.Join(",", module.Pins).</p>
+                                </div>
+                                <div class="col-6">
+                                    @((MarkupString) module.CurrentValueString)
+                                </div>
+                            </div>
                         </div>
                         <div class="card-footer text-muted">
-                            <a class="btn btn-dark btn-sm" href="/iotcomponents/data/@(module.Id)">@Localizer["Data"] <i class="fas fa-chart-area"></i></a>
-                            <a class="btn btn-info btn-sm" href="/iotcomponents/@(module.Id)">@Localizer["Edit"] <i class="fa fa-edit"></i></a>
-                            <button class="btn btn-danger btn-sm" @onclick="@((e)=>Delete(module))">@Localizer["Delete"] <i class="fa fa-trash"></i></button>
+                            <div class="d-flex flex-row justify-content-between">
+                                <div class="d-flex">
+                                    <button type="button" class="btn-style-free" style="font-size: x-large;" @onclick="@((e) => ChangeState(module))">
+                                        <i class="fas @module.StateIcon"></i>
+                                    </button>
+
+                                    @if (module.State != WorkState.Stopped)
+                                    {
+                                        <button type="button" class="btn-style-free" style="font-size: x-large;" @onclick="@((e) => StopModule(module))">
+                                            <i class="far fa-stop-circle"></i>
+                                        </button>
+                                    }
+                                    
+                                </div>
+                                <div class="d-flex">
+                                    <div class="btn-group mx-2">
+                                        <a class="btn btn-dark" href="/iotcomponents/live/@(module.Id)"><i class="fas fa-chart-area"></i> @Localizer["Live"]</a>
+                                        <a class="btn btn-dark dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <span class="sr-only">Toggle Dropdown</span>
+                                        </a>
+                                        <div class="dropdown-menu">
+                                            <a class="dropdown-item" href="/iotcomponents/history/@(module.Id)"><i class="fas fa-history"></i> History</a>
+                                        </div>
+                                    </div>
+
+                                    <div class="dropdown">
+                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <i class="fas fa-cogs"></i>
+                                        </button>
+                                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                            <a class="dropdown-item" href="/iotcomponents/@(module.Id)"><i class="fa fa-edit"></i> @Localizer["Configure"]</a>
+                                            <a class="dropdown-item" href="#" @onclick="@((e) => Delete(module))"><i class="fa fa-trash"></i> @Localizer["Remove"]</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

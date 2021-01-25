@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using FourTwenty.IoT.Connect.Interfaces;
+using FourTwenty.IoT.Connect.Models;
 using FourTwenty.IoT.Server.Components;
 using FourTwenty.IoT.Server.Models;
 
@@ -15,12 +16,12 @@ namespace GrowIoT.Models.Tests
         public MockModule(IReadOnlyCollection<int> pins) : base(pins, null) { }
         public MockModule(IReadOnlyCollection<IRule> rules, IReadOnlyCollection<int> pins) : base(rules, pins, null) { }
 
-        public event EventHandler<SensorEventArgs> DataReceived;
+        public event EventHandler<ModuleResponseEventArgs> DataReceived;
 
         public ValueTask<object> GetData()
         {
             var val = new DhtData(Random.Next(-10, 45), Random.Next(20, 80));
-            DataReceived?.Invoke(this, new SensorEventArgs(val));
+            DataReceived?.Invoke(this, new ModuleResponseEventArgs(val));
             return new ValueTask<object>(val);
         }
     }
