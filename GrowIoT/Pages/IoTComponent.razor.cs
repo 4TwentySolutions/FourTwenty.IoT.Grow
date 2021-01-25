@@ -115,6 +115,17 @@ namespace GrowIoT.Pages
             RuleModal.Show();
         }
 
+        protected void OnRuleStateChange(ModuleRuleVm rule, bool state)
+        {
+	        foreach (var moduleRuleVm in Module.Rules)
+	        {
+		        if (rule.Id == moduleRuleVm.Id)
+		        {
+			        rule.IsEnabled = state;
+		        }
+	        }
+        }
+
 
         protected void OnSubmitRule()
         {
@@ -129,8 +140,7 @@ namespace GrowIoT.Pages
                     if (CurrentRule.Id == 0)
                     {
                         CurrentRule.IsEnabled = true;
-                        if (Module.Rules == null)
-                            Module.Rules = new List<ModuleRuleVm>();
+                        Module.Rules ??= new List<ModuleRuleVm>();
                         Module.Rules?.Add(CurrentRule);
                     }
                     break;
@@ -144,6 +154,39 @@ namespace GrowIoT.Pages
             {
                 IsLoading = true;
                 await BoxManager.SaveModule(Module);
+
+                foreach (var moduleRuleVm in Module.Rules)
+                {
+	                var origRules = Module.IotModule.Rules;
+
+	                if (moduleRuleVm.Id != 0)
+	                {
+		                var origRule = origRules.FirstOrDefault(x => x.Id == moduleRuleVm.Id);
+		                if (origRule != null)
+		                {
+			                if (origRule.IsEnabled && !moduleRuleVm.IsEnabled)
+			                {
+                                //STOP THIS RULE
+                                origRule.IsEnabled = false;
+                                await origRule.Stop();
+			                }
+			                else
+			                {
+				                if (!origRule.IsEnabled && moduleRuleVm.IsEnabled)
+				                {
+					                //START THIS RULE
+					                origRule.IsEnabled = true;
+					                await origRule.Execute();
+				                }
+			                }
+		                }
+	                }
+	                else
+	                {
+                        //ADDED NEW RULE
+	                }
+                }
+
                 ToastService.ShowSuccess(Localizer["Module successfully saved"], Localizer["Congratulations!"]);
                 NavigationManager.NavigateTo("iotcomponents");
             }

@@ -5,106 +5,123 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using FourTwenty.IoT.Connect.Entities;
 using FourTwenty.IoT.Connect.Interfaces;
+using FourTwenty.IoT.Connect.Models;
 using FourTwenty.IoT.Server.Components.Sensors;
+using GrowIoT.Common;
+using FourTwenty.IoT.Server.Models;
 
 namespace GrowIoT.ViewModels
 {
-    public class ModuleVm : EntityViewModel<GrowBoxModule>
-    {
-        public int Id { get; set; }
-        [Required]
-        public string Name { get; set; }
-        public ModuleType Type { get; set; }
-        public int[] Pins { get; set; }
-        public int GrowBoxId { get; set; }
-        public GrowBoxViewModel GrowBox { get; set; }
-        public ICollection<ModuleRuleVm> Rules { get; set; }
+	public class ModuleVm : EntityViewModel<GrowBoxModule>, IDisposable
+	{
+		public int Id { get; set; }
+		[Required]
+		public string Name { get; set; }
+		public ModuleType Type { get; set; }
+		public int[] Pins { get; set; }
+		public int GrowBoxId { get; set; }
+		public GrowBoxViewModel GrowBox { get; set; }
+		public ICollection<ModuleRuleVm> Rules { get; set; }
+		public string CurrentValueString { get; set; }
+		public object CurrentRawValue { get; set; }
+		public IModule IotModule { get; set; }
 
-        private string _currentValue;
-        public string CurrentValue
-        {
-            get => _currentValue;
-            set => _currentValue = value;
-        }
+		public ISensor Sensor => IotModule as ISensor;
+		public IRelay Relay => IotModule as IRelay;
 
+		#region States
 
-        public event EventHandler<SensorEventArgs> DataReceived;
-        public event EventHandler<RelayEventArgs> StateChanged;
+		public WorkState State => IotModule?.RulesWorkState ?? WorkState.Stopped;
 
+		public string StateIcon => State == WorkState.Running ? "far fa-pause-circle" :
+			State == WorkState.Paused ? "far fa-play-circle" : State == WorkState.Stopped ? "far fa-play-circle" : string.Empty;
 
-        private ISensor _sensor;
-        public ISensor Sensor
-        {
-            get => _sensor;
-            set
-            {
-                _sensor = value;
-                if (_sensor != null)
-                {
-                    _sensor.DataReceived += SensorOnDataReceived;
-                }
-            }
-        }
+		public string BadgeIcon => State == WorkState.Running ? "badge-success" :
+			State == WorkState.Paused ? "badge-warning" :
+			State == WorkState.Stopped ? "badge-danger" : "badge-secondary";
 
-        private IRelay _relay;
-        public IRelay Relay
-        {
-            get => _relay;
-            set
-            {
-                _relay = value;
-                if (_relay != null)
-                {
-                    _relay.StateChanged += RelayOnStateChanged;
-                }
-            }
-        }
+		#endregion
 
-        private void RelayOnStateChanged(object? sender, RelayEventArgs e)
-        {
-            switch (Type)
-            {
-                case ModuleType.Relay:
-                    {
-                        CurrentValue = Relay.States.Aggregate("", (current, relayPin) =>
-                           // current + $"State {relayPin.Key}: {(relayPin.Value == RelayState.Opened ? "<b class='on-relay-state'>ON</b>" : "<b class='off-relay-state'>OFF</b>")} <br/>");
-                           current + $"Pin {relayPin.Key}: {(relayPin.Value == RelayState.Opened ? "<i class='fas fa-toggle-on'></i>" : "<i class='fas fa-toggle-off'></i>")} <br/>");
+		#region Events subscription
 
-                        break;
-                    }
-            }
+		public void Subscribe()
+		{
 
-            OnStateChanged(e);
-        }
+			if (Sensor != null)
+				Sensor.DataReceived += OnDataReceived;
+			if (Relay != null)
+				Relay.StateChanged += OnDataReceived;
+		}
+
+		public void Unsubscribe()
+		{
+			if (Sensor != null)
+				Sensor.DataReceived -= OnDataReceived;
+			if (Relay != null)
+				Relay.StateChanged -= OnDataReceived;
+		}
 
 
-        private void SensorOnDataReceived(object? sender, SensorEventArgs e)
-        {
-            switch (Type)
-            {
-                case ModuleType.HumidityAndTemperature:
-                    {
-                        if (e.Data is DhtData moduleData && !double.IsNaN(moduleData.Temperature))
-                        {
-                            CurrentValue = $"<b><i class='fas fa-thermometer-half'></i>{moduleData.Temperature}&#8451;</b><br/><b><i class='fas fa-tint'></i>{moduleData.Humidity}%</b>";
-                        }
+		public event EventHandler<VisualStateEventArgs> VisualStateChanged;
+		
+		private void OnDataReceived(object? sender, ModuleResponseEventArgs e)
+		{
+			CurrentRawValue = e.Data;
+			switch (Type)
+			{
+				case ModuleType.HumidityAndTemperature:
+					{
+						if (e.Data is DhtData moduleData && !double.IsNaN(moduleData.Temperature))
+						{
+							CurrentValueString = $"<b><i class='fas fa-thermometer-half'></i>{moduleData.Temperature}&#8451;</b><br/><b><i class='fas fa-tint'></i>{moduleData.Humidity}%</b>";
+						}
+
+						break;
+					}
+				case ModuleType.RangeFinder:
+					{
+						if (e.Data is RangeFinderData moduleData && !double.IsNaN(moduleData.Distance))
+						{
+							CurrentValueString = $"<b><i class='fas fa-arrows-alt-v'></i>{moduleData.Distance}</b>";
+						}
+
+						break;
+					}
+
+				case ModuleType.Relay:
+				{
+					CurrentValueString = Relay.States.Aggregate("", (current, relayPin) =>
+						current + $"Pin {relayPin.Key}: {(relayPin.Value == RelayState.Opened ? "<i class='fas fa-toggle-on'></i>" : "<i class='fas fa-toggle-off'></i>")} <br/>");
+
+					break;
+				}
+			}
+
+			VisualStateChanged?.Invoke(this, new VisualStateEventArgs());
+		}
+		#endregion
+
+		#region IDisposable Support
+		private bool _disposedValue; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (_disposedValue) return;
+			if (disposing)
+			{
+				Unsubscribe();
+			}
 
 
-                        break;
-                    }
-            }
+			_disposedValue = true;
+		}
 
-            OnDataReceived(e);
-        }
 
-        protected virtual void OnDataReceived(SensorEventArgs e)
-        {
-            DataReceived?.Invoke(this, e);
-        }
-
-        protected virtual void OnStateChanged(RelayEventArgs e)
-        {
-            StateChanged?.Invoke(this, e);
-        }
-    }
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			Dispose(true);
+		}
+		#endregion
+	}
 }

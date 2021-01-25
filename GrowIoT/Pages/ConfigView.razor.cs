@@ -23,7 +23,7 @@ namespace GrowIoT.Pages
         public GrowBoxViewModel Box { get; set; } = new GrowBoxViewModel();
         protected override async Task OnInitializedAsync()
         {
-            Config = ConfigService.GetConfig();
+            //Config = //new ConfigDto();//ConfigService.GetConfig();
             var box = await BoxManager.GetBox();
             if (box != null)
             {

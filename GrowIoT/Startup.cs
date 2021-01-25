@@ -35,6 +35,7 @@ using Serilog;
 using Syncfusion.Blazor;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 using Microsoft.AspNetCore.Components.Server.Circuits;
+using System.Device.Gpio.Drivers;
 
 namespace GrowIoT
 {
@@ -80,11 +81,14 @@ namespace GrowIoT
             services.AddAutoMapper(GetType());
             services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
 
-            services.AddSingleton<IIoTConfigService, IoTConfigService>();
+            services.AddSingleton<IIoTConfigService, IoTRuntimeService>();
             services.AddSingleton<IHistoryService, HistoryService>();
-            services.AddSingleton<IJobsService, JobsService>();
-            services.AddSingleton<IHubService, HubService>();
-            services.AddSingleton<IMemoryMetricsClient, MemoryMetricsClient>();
+            services.AddScoped<IJobsService, JobsService>();
+            services.AddScoped<IHubService, HubService>();
+            services.AddScoped<IMemoryMetricsClient, MemoryMetricsClient>();
+            services.AddScoped<IGrowboxManager, GrowboxManager>();
+            services.AddSingleton(provider => new GpioController(PinNumberingScheme.Logical, new RaspberryPi3Driver()));
+
             services.AddScoped<IHtmlSanitizer, HtmlSanitizer>(x =>
             {
                 // Configure sanitizer rules as needed here.
@@ -95,14 +99,11 @@ namespace GrowIoT
             });
 
             services.AddBlazoredToast();
-            services.AddScoped<IGrowboxManager, GrowboxManager>();
             services.AddLocalization(opts => opts.ResourcesPath = "Resources");
             services.AddGrowHealthChecks();
             services.AddSyncfusionBlazor();
             services.AddSingleton<CircuitHandler>(new CircuitHandlerService());
-
-           
-
+            
 
         }
 

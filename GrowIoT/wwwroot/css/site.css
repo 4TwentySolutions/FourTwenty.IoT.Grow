@@ -163,6 +163,26 @@ a, .btn-link {
         text-shadow: none;
     }
 
+.card-header-subtitle {
+    font-size: medium;
+}
+
+.datePickerWrapper {
+    max-width: 300px;
+    margin: 0px auto;
+    padding-top: 20px;
+}
+
+.btn-style-free {
+    border: none;
+    background: transparent;
+    outline: none !important; 
+}
+
+.e-input-group.e-error, .e-input-group.e-control-wrapper.e-error, .e-input-group.e-error:not(.e-float-icon-left), .e-input-group.e-control-wrapper.e-error:not(.e-float-icon-left) {
+    border-bottom-color: dimgray;
+} 
+
 @media (max-width: 767.98px) {
     .main .top-row:not(.auth) {
         display: none;

@@ -9,21 +9,25 @@
         max-width: 100% !important;
     }
 </style>
-<div class="container mt-5">
+<div class="container">
     <div class="row">
         <div class="col">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><NavLink href="/">@Localizer["Home"]</NavLink></li>
                     <li class="breadcrumb-item"><NavLink href="/iotcomponents">@Localizer["Components"]</NavLink></li>
-                    <li class="breadcrumb-item active" aria-current="page">@(Id.HasValue ? $"Edit component {Module.Name}" : "Create component")</li>
+                    @if (Id.HasValue)
+                    {
+                        <li class="breadcrumb-item">@(Module?.Name)</li>
+                    }
+                    <li class="breadcrumb-item active" aria-current="page">@(Id.HasValue ? "Edit component" : "Create component")</li>
                 </ol>
             </nav>
         </div>
     </div>
     <div class="row">
         <div class="col">
-            <h3>@(Id.HasValue ? $"Edit component {Module.Name}" : "Create component")</h3>
+            <h3>@(Id.HasValue ? "Edit component" : "Create component")</h3>
         </div>
     </div>
     <div class="row justify-content-center mb-4">
@@ -93,10 +97,10 @@
 
                                                                     <div class="btn-group btn-group-toggle" data-toggle="buttons">
                                                                         <label class="btn btn-secondary btn-sm @(rule.IsEnabled ? "active":"")">
-                                                                            <input type="radio" name="options" id="onOption" checked="@rule.IsEnabled">ON
+                                                                            <input type="radio" @onclick="@(() => OnRuleStateChange(rule,true))" id="onOption" value="@rule.IsEnabled">ON
                                                                         </label>
                                                                         <label class="btn btn-secondary btn-sm @(!rule.IsEnabled ? "active":"")">
-                                                                            <input type="radio" name="options" id="offOption" checked="@(!rule.IsEnabled)">OFF
+                                                                            <input type="radio" @onclick="@(() => OnRuleStateChange(rule,false))" id="offOption" checked="@(!rule.IsEnabled)">OFF
                                                                         </label>
                                                                     </div>
 

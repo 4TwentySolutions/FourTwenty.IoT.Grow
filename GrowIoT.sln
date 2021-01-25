@@ -4,28 +4,48 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.29519.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GrowIoT", "GrowIoT\GrowIoT.csproj", "{F617A8E7-DF3C-48AC-B36F-8E8F7451F7D5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{40CD240A-9835-4302-999D-AB58081F54AF} = {40CD240A-9835-4302-999D-AB58081F54AF}
+		{83D2C580-D662-45EA-8C8E-E43FF33077B9} = {83D2C580-D662-45EA-8C8E-E43FF33077B9}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{0F8A5B66-31EA-4509-B9E3-E5454BAC5164}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FourTwenty.IoT.Server", "..\FourTwenty.IoT.Connect\FourTwenty.IoT.Server\FourTwenty.IoT.Server.csproj", "{83D2C580-D662-45EA-8C8E-E43FF33077B9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FourTwenty.IoT.Connect", "..\FourTwenty.IoT.Connect\FourTwenty.IoT.Connect\FourTwenty.IoT.Connect.csproj", "{40CD240A-9835-4302-999D-AB58081F54AF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
-		DebugLocalWin|Any CPU = DebugLocalWin|Any CPU
 		Release|Any CPU = Release|Any CPU
+		Remote Debug|Any CPU = Remote Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{F617A8E7-DF3C-48AC-B36F-8E8F7451F7D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F617A8E7-DF3C-48AC-B36F-8E8F7451F7D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F617A8E7-DF3C-48AC-B36F-8E8F7451F7D5}.DebugLocalWin|Any CPU.ActiveCfg = DebugLocalWin|Any CPU
-		{F617A8E7-DF3C-48AC-B36F-8E8F7451F7D5}.DebugLocalWin|Any CPU.Build.0 = DebugLocalWin|Any CPU
 		{F617A8E7-DF3C-48AC-B36F-8E8F7451F7D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F617A8E7-DF3C-48AC-B36F-8E8F7451F7D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F617A8E7-DF3C-48AC-B36F-8E8F7451F7D5}.Remote Debug|Any CPU.ActiveCfg = RaspberryDebug|Any CPU
+		{F617A8E7-DF3C-48AC-B36F-8E8F7451F7D5}.Remote Debug|Any CPU.Build.0 = RaspberryDebug|Any CPU
 		{0F8A5B66-31EA-4509-B9E3-E5454BAC5164}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0F8A5B66-31EA-4509-B9E3-E5454BAC5164}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0F8A5B66-31EA-4509-B9E3-E5454BAC5164}.DebugLocalWin|Any CPU.ActiveCfg = Debug|Any CPU
-		{0F8A5B66-31EA-4509-B9E3-E5454BAC5164}.DebugLocalWin|Any CPU.Build.0 = Debug|Any CPU
 		{0F8A5B66-31EA-4509-B9E3-E5454BAC5164}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0F8A5B66-31EA-4509-B9E3-E5454BAC5164}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F8A5B66-31EA-4509-B9E3-E5454BAC5164}.Remote Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F8A5B66-31EA-4509-B9E3-E5454BAC5164}.Remote Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83D2C580-D662-45EA-8C8E-E43FF33077B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83D2C580-D662-45EA-8C8E-E43FF33077B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83D2C580-D662-45EA-8C8E-E43FF33077B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83D2C580-D662-45EA-8C8E-E43FF33077B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83D2C580-D662-45EA-8C8E-E43FF33077B9}.Remote Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83D2C580-D662-45EA-8C8E-E43FF33077B9}.Remote Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40CD240A-9835-4302-999D-AB58081F54AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40CD240A-9835-4302-999D-AB58081F54AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40CD240A-9835-4302-999D-AB58081F54AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40CD240A-9835-4302-999D-AB58081F54AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40CD240A-9835-4302-999D-AB58081F54AF}.Remote Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40CD240A-9835-4302-999D-AB58081F54AF}.Remote Debug|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,96 @@
+﻿@page "/iotcomponents/live/{Id:int}"
+@using Microsoft.Extensions.Localization
+@using Syncfusion.Blazor.Charts
+@inherits BaseGrowComponent
+@attribute [Authorize]
+@inject IStringLocalizer<AppResources> Localizer
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><NavLink href="/">@Localizer["Home"]</NavLink></li>
+                    <li class="breadcrumb-item"><NavLink href="/iotcomponents">@Localizer["Components"]</NavLink></li>
+                    <li class="breadcrumb-item">@(Module?.Name)</li>
+                    <li class="breadcrumb-item active" aria-current="page">@Localizer["Live Chart"]</li>
+                </ol>
+            </nav>
+            <div class="card mt-4">
+                <div class="card-body">
+                    @if (IsLoading)
+                    {
+                        <div class="spinner-border mx-auto d-block" role="status">
+                            <span class="sr-only">@Localizer["Loading"]...</span>
+                        </div>
+                    }
+                    <div class="row">
+                        <div class="col-12 text-center ">
+                            <h3>@Localizer["Live Chart"]</h3>
+                            <div class="d-flex flex-column justify-content-center align-content-center">
+                                <SfChart @ref="HistoryChart"
+                                         Width="100%"
+                                         Height="450px">
+                                    <ChartPrimaryXAxis Title="Time"
+                                                       ValueType="Syncfusion.Blazor.Charts.ValueType.DateTime" />
+                                    <ChartPrimaryYAxis ValueType="@YAxisType"
+                                                       Maximum="@Maximum"
+                                                       Minimum="@Minimum" />
+
+                                    <ChartTooltipSettings Enable="true" Format="${series.name} ${point.x} : ${point.y} ">
+                                    </ChartTooltipSettings>
+
+                                    <ChartSeriesCollection>
+                                        @if (Module != null)
+                                        {
+                                            switch (Module.Type)
+                                            {
+                                                case FourTwenty.IoT.Connect.Constants.ModuleType.Temperature:
+                                                case FourTwenty.IoT.Connect.Constants.ModuleType.HumidityAndTemperature:
+                                                    <ChartSeries XName="Date" YName="Humidity" PointColorMapping="HumidityColor" Fill="#0277BD" Type="@ChartType" DataSource="@TemperatureHistoryData">
+                                                        <ChartSeriesAnimation Enable="false" />
+                                                        <ChartMarker Visible="true">
+                                                            <ChartDataLabel Visible="true" Name="HumidityText" />
+                                                        </ChartMarker>
+                                                    </ChartSeries>
+                                                    <ChartSeries XName="Date" YName="Temperature" PointColorMapping="TemperatureColor" Fill="#F57C00" Type="@ChartType" DataSource="@TemperatureHistoryData">
+                                                        <ChartSeriesAnimation Enable="false" />
+                                                        <ChartMarker Visible="true">
+                                                            <ChartDataLabel Visible="true" Name="TemperatureText" />
+                                                        </ChartMarker>
+                                                    </ChartSeries>
+                                                    break;
+                                                case FourTwenty.IoT.Connect.Constants.ModuleType.Relay:
+                                                    foreach (var pin in Module.Pins)
+                                                    {
+                                                        <ChartSeries XName="Date" YName="Pin" PointColorMapping="StateColor" Type="@ChartType" DataSource="@HistoryData[pin]">
+                                                            <ChartSeriesAnimation Enable="false" />
+                                                            <ChartMarker Visible="true">
+                                                                <ChartDataLabel Visible="true" Name="Description" />
+                                                            </ChartMarker>
+                                                        </ChartSeries>
+                                                    }
+                                                    break;
+
+                                                case FourTwenty.IoT.Connect.Constants.ModuleType.RangeFinder:
+                                                        <ChartSeries XName="Date" YName="Distance" PointColorMapping="Blue" Type="@ChartType" DataSource="@RangeFinderHistoryData">
+                                                            <ChartSeriesAnimation Enable="false" />
+                                                            <ChartMarker Visible="true">
+                                                                <ChartDataLabel Visible="true" Name="DistanceText" />
+                                                            </ChartMarker>
+                                                        </ChartSeries>
+                                                    
+                                                    break;
+                                            }
+                                        }
+                                    </ChartSeriesCollection>
+                                </SfChart>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

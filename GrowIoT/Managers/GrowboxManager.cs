@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using FourTwenty.IoT.Connect.Constants;
 using FourTwenty.IoT.Connect.Entities;
-using FourTwenty.IoT.Connect.Interfaces;
 using FourTwenty.IoT.Connect.Models;
 using GrowIoT.Interfaces;
 using GrowIoT.ViewModels;
@@ -19,9 +19,8 @@ namespace GrowIoT.Managers
         #region fields
 
         private readonly IGrowDataContext _context;
-        private readonly IIoTConfigService _configService;
         private readonly ILogger _logger;
-
+        private readonly IIoTConfigService _ioTService;
         private readonly IMapper _mapper;
 
         #endregion
@@ -31,13 +30,13 @@ namespace GrowIoT.Managers
         public GrowboxManager(
             IGrowDataContext context,
             IMapper mapper,
-            IIoTConfigService configService,
-            ILogger<GrowboxManager> logger)
+            ILogger<GrowboxManager> logger,
+            IIoTConfigService ioTService)
         {
             _context = context;
             _mapper = mapper;
-            _configService = configService;
             _logger = logger;
+            _ioTService = ioTService;
         }
 
         private GrowBox _box;
@@ -64,10 +63,7 @@ namespace GrowIoT.Managers
         public async Task<ModuleVm> GetModule(int id)
         {
             var module = _mapper.Map<ModuleVm>(await _context.Modules.Include(d => d.Rules).FirstOrDefaultAsync(d => d.Id == id));
-            var moduleRaw = _configService.GetModule(id);
-
-            module.Sensor = moduleRaw as ISensor;
-            module.Relay = moduleRaw as IRelay;
+            module.IotModule = _ioTService.GetModule(id);
 
             foreach (var moduleRuleVm in module.Rules)
             {
@@ -103,14 +99,11 @@ namespace GrowIoT.Managers
         public async Task<IReadOnlyList<ModuleVm>> GetModules()
         {
             var mapped = _mapper.Map<IReadOnlyList<ModuleVm>>(await _context.Modules.ToListAsync());
-            var modules = _configService.GetModules();
-
             foreach (var moduleVm in mapped)
             {
-                moduleVm.Sensor = modules.FirstOrDefault(x => x.Id == moduleVm.Id) as ISensor;
-                moduleVm.Relay = modules.FirstOrDefault(x => x.Id == moduleVm.Id) as IRelay;
+	            moduleVm.IotModule = _ioTService.GetModule(moduleVm.Id);
             }
-
+               
             return mapped;
         }
     }
