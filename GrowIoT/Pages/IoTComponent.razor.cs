@@ -34,6 +34,18 @@ namespace GrowIoT.Pages
         public ModuleRuleVm CurrentRule { get; set; } = new ModuleRuleVm();
         #region rules
         public CronRuleData CronRule { get; set; } = new CronRuleData();
+
+        private ModuleType _moduleType;
+        public ModuleType ModuleType
+        {
+	        get => _moduleType;
+	        set
+	        {
+		        _moduleType = value;
+                OnTypeChanged(value);
+	        }
+        }
+
         #endregion
 
 
@@ -41,8 +53,12 @@ namespace GrowIoT.Pages
 
         protected override async Task OnInitializedAsync()
         {
-            if (Id.HasValue)
-                Module = await BoxManager.GetModule(Id.Value);
+	        if (Id.HasValue)
+	        {
+		        Module = await BoxManager.GetModule(Id.Value);
+		        ModuleType = Module.Type;
+	        }
+                
             await base.OnInitializedAsync();
         }
         #endregion
@@ -64,7 +80,15 @@ namespace GrowIoT.Pages
             }
         }
 
+        protected void  OnTypeChanged(ModuleType type)
+        {
+	        Module.Type = type;
 
+	        if (type == ModuleType.WaterTank)
+	        {
+                OnChanged(new ChangeEventArgs{Value = "2"});
+	        }
+        }
 
         protected async void PinInputChanged(ChangeEventArgs change, int index)
         {
@@ -115,6 +139,14 @@ namespace GrowIoT.Pages
             RuleModal.Show();
         }
 
+        protected void OnDisplayChange(bool isPercents)
+        {
+	        if (Module?.DisplayData != null)
+	        {
+		        Module.DisplayData.IsPercents = isPercents;
+	        }
+        }
+
         protected void OnRuleStateChange(ModuleRuleVm rule, bool state)
         {
 	        foreach (var moduleRuleVm in Module.Rules)
@@ -155,35 +187,38 @@ namespace GrowIoT.Pages
                 IsLoading = true;
                 await BoxManager.SaveModule(Module);
 
-                foreach (var moduleRuleVm in Module.Rules)
+                if (Module.IotModule != null)
                 {
-	                var origRules = Module.IotModule.Rules;
-
-	                if (moduleRuleVm.Id != 0)
+	                foreach (var moduleRuleVm in Module.Rules)
 	                {
-		                var origRule = origRules.FirstOrDefault(x => x.Id == moduleRuleVm.Id);
-		                if (origRule != null)
+		                var origRules = Module.IotModule.Rules;
+
+		                if (moduleRuleVm.Id != 0)
 		                {
-			                if (origRule.IsEnabled && !moduleRuleVm.IsEnabled)
+			                var origRule = origRules.FirstOrDefault(x => x.Id == moduleRuleVm.Id);
+			                if (origRule != null)
 			                {
-                                //STOP THIS RULE
-                                origRule.IsEnabled = false;
-                                await origRule.Stop();
-			                }
-			                else
-			                {
-				                if (!origRule.IsEnabled && moduleRuleVm.IsEnabled)
+				                if (origRule.IsEnabled && !moduleRuleVm.IsEnabled)
 				                {
-					                //START THIS RULE
-					                origRule.IsEnabled = true;
-					                await origRule.Execute();
+					                //STOP THIS RULE
+					                origRule.IsEnabled = false;
+					                await origRule.Stop();
+				                }
+				                else
+				                {
+					                if (!origRule.IsEnabled && moduleRuleVm.IsEnabled)
+					                {
+						                //START THIS RULE
+						                origRule.IsEnabled = true;
+						                await origRule.Execute();
+					                }
 				                }
 			                }
 		                }
-	                }
-	                else
-	                {
-                        //ADDED NEW RULE
+		                else
+		                {
+			                //ADDED NEW RULE
+		                }
 	                }
                 }
 

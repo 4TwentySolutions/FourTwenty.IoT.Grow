@@ -18,6 +18,7 @@ using Quartz.Impl;
 using System.Device.Gpio.Drivers;
 using FourTwenty.IoT.Server.Components.Sensors;
 using FourTwenty.IoT.Server.Components.Relays;
+using FourTwenty.IoT.Server.Models;
 using GrowIoT.Extensions;
 using Quartz;
 using Quartz.Impl.Matchers;
@@ -103,6 +104,12 @@ namespace GrowIoT.Services
                     case ModuleType.RangeFinder:
                         mod = new RangeFinderSensor(module.Pins.FirstOrDefault(), module.Pins.LastOrDefault(), _gpioController);
                         break;
+                    case ModuleType.WaterTank:
+	                    mod = new WaterTank(module.Pins.FirstOrDefault(), module.Pins.LastOrDefault(), _gpioController)
+	                    {
+                            DisplayData = !string.IsNullOrEmpty(module.AdditionalData) ? JsonConvert.DeserializeObject<AdditionalData>(module.AdditionalData) : null
+	                    };
+	                    break;
                 }
 
                 if (mod != null)

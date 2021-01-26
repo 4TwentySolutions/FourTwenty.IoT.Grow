@@ -44,7 +44,7 @@
                         </div>
                         <div class="form-group">
                             <label for="moduleType">@Localizer["Select module type"]</label>
-                            <select class="form-control" id="moduleType" @bind="Module.Type" aria-describedby="moduleTypeHelp">
+                            <select class="form-control" id="moduleType" @bind="ModuleType" aria-describedby="moduleTypeHelp">
                                 @foreach (var type in Enum.GetNames(typeof(ModuleType)))
                                 {
                                     <option value="@type">@type</option>
@@ -73,6 +73,40 @@
                                 }
                             }
                         </div>
+
+                        @if (Module.Type == ModuleType.WaterTank)
+                        {
+                            <div class="row mt-3">
+                                <div class="col-4">
+                                    <div class="form-group">
+                                        <label>Minimum water value</label>
+                                        <InputText type="number" class="form-control" min="0" placeholder="Min value" @bind-Value="Module.DisplayData.Min" aria-describedby="WaterTankMinValue" />
+                                        <small id="WaterTankMinValue" class="form-text text-muted">@Localizer["Set value in centimeters"]</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="form-group">
+                                        <label>Maximum water value</label>
+                                        <InputText type="number" class="form-control" min="0" placeholder="Max value" @bind-Value="Module.DisplayData.Max" aria-describedby="WaterTankMaxValue" />
+                                        <small id="WaterTankMaxValue" class="form-text text-muted">@Localizer["Set value in centimeters"]</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <label>@Localizer["Display format"]</label>
+                                    <div class="form-group">
+                                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                            <label class="btn btn-secondary btn-sm @(Module.DisplayData.IsPercents.GetValueOrDefault() ? "active" : "")">
+                                                <input type="radio" id="onOption" @onclick="@(() => OnDisplayChange(true))" checked="@Module.DisplayData.IsPercents">@Localizer["Percents"]
+                                            </label>
+                                            <label class="btn btn-secondary btn-sm @(!Module.DisplayData.IsPercents.GetValueOrDefault() ? "active" : "")">
+                                                <input type="radio" id="offOption" @onclick="@(() => OnDisplayChange(false))" checked="@(!Module.DisplayData.IsPercents)">@Localizer["Centimeters"]
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
                         <div class="row mt-5 align-items-center">
                             <div class="col-8">
                                 <h4>@Localizer["Rules"]</h4>
@@ -96,11 +130,11 @@
                                                                 <div class="d-flex w-100 justify-content-between align-items-center">
 
                                                                     <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                                                                        <label class="btn btn-secondary btn-sm @(rule.IsEnabled ? "active":"")">
-                                                                            <input type="radio" @onclick="@(() => OnRuleStateChange(rule,true))" id="onOption" value="@rule.IsEnabled">ON
+                                                                        <label class="btn btn-secondary btn-sm @(rule.IsEnabled ? "active" : "")">
+                                                                            <input type="radio" @onclick="@(() => OnRuleStateChange(rule, true))" id="onOption" value="@rule.IsEnabled">ON
                                                                         </label>
-                                                                        <label class="btn btn-secondary btn-sm @(!rule.IsEnabled ? "active":"")">
-                                                                            <input type="radio" @onclick="@(() => OnRuleStateChange(rule,false))" id="offOption" checked="@(!rule.IsEnabled)">OFF
+                                                                        <label class="btn btn-secondary btn-sm @(!rule.IsEnabled ? "active" : "")">
+                                                                            <input type="radio" @onclick="@(() => OnRuleStateChange(rule, false))" id="offOption" checked="@(!rule.IsEnabled)">OFF
                                                                         </label>
                                                                     </div>
 
@@ -112,8 +146,8 @@
                                                                         <span>@Localizer["Pin"] <small class="text-muted">@rule.Pin.GetValueOrDefault()</small></span>
                                                                     }
                                                                     <div>
-                                                                        <button class="btn text-info" @onclick="@((e)=>OnRuleClicked(rule))" type="button"><i class="fas fa-edit"></i></button>
-                                                                        <button class="btn text-danger" @onclick="@((e)=>RemoveRule(rule))" type="button"><i class="fas fa-minus-circle"></i></button>
+                                                                        <button class="btn text-info" @onclick="@((e) => OnRuleClicked(rule))" type="button"><i class="fas fa-edit"></i></button>
+                                                                        <button class="btn text-danger" @onclick="@((e) => RemoveRule(rule))" type="button"><i class="fas fa-minus-circle"></i></button>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -157,20 +191,20 @@
         <BSModalBody>
             @if (Module.Pins.Length >= 2)
             {
-            <div class="form-group">
-                <label for="selectedPin" class="w-100">@Localizer["Select pin"]</label><br />
-                <select class="form-control" id="selectedPin" @bind="CurrentRule.Pin" aria-describedby="selectedPinHelp">
-                    @if (CurrentRule.Pins != null)
-                    {
-                        foreach (var pin in CurrentRule.Pins)
+                <div class="form-group">
+                    <label for="selectedPin" class="w-100">@Localizer["Select pin"]</label><br />
+                    <select class="form-control" id="selectedPin" @bind="CurrentRule.Pin" aria-describedby="selectedPinHelp">
+                        @if (CurrentRule.Pins != null)
                         {
-                            <option value="@pin">@pin</option>
+                            foreach (var pin in CurrentRule.Pins)
+                            {
+                                <option value="@pin">@pin</option>
+                            }
                         }
-                    }
-                </select>
-                <ValidationMessage For="@(()=>CurrentRule.Pin)" class="text-danger"></ValidationMessage>
-                <small id="selectedPinHelp" class="form-text text-muted">@Localizer["Select the pin for which you are creating a job"]</small>
-            </div>
+                    </select>
+                    <ValidationMessage For="@(()=>CurrentRule.Pin)" class="text-danger"></ValidationMessage>
+                    <small id="selectedPinHelp" class="form-text text-muted">@Localizer["Select the pin for which you are creating a job"]</small>
+                </div>
             }
 
             <div class="form-group">

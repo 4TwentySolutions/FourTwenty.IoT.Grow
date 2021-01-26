@@ -25,6 +25,7 @@ namespace GrowIoT.ViewModels
 		public string CurrentValueString { get; set; }
 		public object CurrentRawValue { get; set; }
 		public IModule IotModule { get; set; }
+		public AdditionalData DisplayData { get; set; } = new AdditionalData();
 
 		public ISensor Sensor => IotModule as ISensor;
 		public IRelay Relay => IotModule as IRelay;
@@ -87,6 +88,16 @@ namespace GrowIoT.ViewModels
 
 						break;
 					}
+
+				case ModuleType.WaterTank:
+				{
+					if (e.Data is WaterTankData moduleData && !double.IsNaN(moduleData.Value))
+					{
+						CurrentValueString = $"<b><i class='fas fa-water'></i>{moduleData.ValueLine}</b>";
+					}
+
+					break;
+				}
 
 				case ModuleType.Relay:
 				{

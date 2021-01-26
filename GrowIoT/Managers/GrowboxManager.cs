@@ -78,6 +78,7 @@ namespace GrowIoT.Managers
         public async Task SaveModule(ModuleVm module)
         {
             _mapper.Map(module, module.DbEntity);
+
             if (module.Id == default)
                 await _context.Modules.AddAsync(module.DbEntity);
             await _context.CommitAsync();
